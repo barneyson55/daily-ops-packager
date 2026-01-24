@@ -1,0 +1,8 @@
+/logs/
+/out/
+/tmp/
+config/app.ini
+config/app.local.ini
+*.log
+.DS_Store
+Thumbs.db
