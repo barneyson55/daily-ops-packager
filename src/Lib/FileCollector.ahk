@@ -1,10 +1,12 @@
 class FileCollector {
-  static Collect(watchDir, extensions, tmpDir, dryRun := false) {
+  static Collect(watchDir, extensions, tmpDir, dryRun := false, include := "", exclude := "") {
     if (!DirExist(watchDir))
       throw Error("watchDir not found: " watchDir)
 
     today := FormatTime(, "yyyyMMdd")
     extInfo := this.ParseExtensions(extensions)
+    includePatterns := this.ParseWildcards(include)
+    excludePatterns := this.ParseWildcards(exclude)
     files := []
 
     root := this.NormalizeDir(watchDir)
@@ -14,9 +16,13 @@ class FileCollector {
       SplitPath A_LoopFileFullPath, , , &ext
       if (!this.ExtAllowed(ext, extInfo))
         continue
+      rel := this.RelPath(A_LoopFileFullPath, root)
+      if (!this.IncludeAllowed(rel, includePatterns))
+        continue
+      if (this.ExcludeBlocked(rel, excludePatterns))
+        continue
       files.Push(A_LoopFileFullPath)
       if (!dryRun) {
-        rel := this.RelPath(A_LoopFileFullPath, root)
         dest := tmpDir "\\" rel
         SplitPath dest, , &destDir
         DirCreate(destDir)
@@ -51,6 +57,45 @@ class FileCollector {
     if (extInfo.allowAll)
       return true
     return extInfo.set.Has(StrLower(ext))
+  }
+
+  static ParseWildcards(list) {
+    patterns := []
+    for _, item in StrSplit(list, ";") {
+      t := Trim(item)
+      if (t = "")
+        continue
+      t := StrReplace(t, "/", "\")
+      patterns.Push(this.WildcardToRegex(t))
+    }
+    return patterns
+  }
+
+  static WildcardToRegex(pattern) {
+    esc := RegExReplace(pattern, "([\\.^$+()\\[\\]{}|])", "\\$1")
+    esc := StrReplace(esc, "*", ".*")
+    esc := StrReplace(esc, "?", ".")
+    return "i)^" . esc . "$"
+  }
+
+  static IncludeAllowed(relPath, includePatterns) {
+    if (includePatterns.Length = 0)
+      return true
+    return this.AnyMatch(relPath, includePatterns)
+  }
+
+  static ExcludeBlocked(relPath, excludePatterns) {
+    if (excludePatterns.Length = 0)
+      return false
+    return this.AnyMatch(relPath, excludePatterns)
+  }
+
+  static AnyMatch(text, regexList) {
+    for _, rx in regexList {
+      if (RegExMatch(text, rx))
+        return true
+    }
+    return false
   }
 
   static NormalizeDir(path) {

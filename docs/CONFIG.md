@@ -9,11 +9,14 @@ This document describes every INI field.
 
 ## [patterns]
 - `extensions` (required): Semicolon-separated list of file patterns (e.g., `*.pdf;*.xlsx`). `*` or `*.*` matches all.
+- `include` (optional): Semicolon-separated wildcard patterns applied to relative paths. If set, only matches that fit at least one pattern are kept.
+- `exclude` (optional): Semicolon-separated wildcard patterns applied to relative paths. Matches are removed even if included.
 
 ## [zip]
 - `exe` (required): Full path to `7z.exe`.
 - `passwordEnv` (required): Environment variable name for the archive password.
 - `archiveName` (required): Filename template. Supports `{YYYYMMDD}` and `{HHmm}`.
+- `verify` (optional): `1` to run `7z t` after creation, `0` to skip.
 
 ## [rclone]
 - `exe` (required): Full path to `rclone.exe`.

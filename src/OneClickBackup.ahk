@@ -8,12 +8,14 @@
 #Include %A_ScriptDir%\Lib\ZipPack.ahk
 #Include %A_ScriptDir%\Lib\RcloneUpload.ahk
 #Include %A_ScriptDir%\Lib\Notify.ahk
+#Include %A_ScriptDir%\Lib\Report.ahk
 
 main()
 
 main() {
   baseDir := DirGetParent(A_ScriptDir)
   cfg := ""
+  summary := { status: "unknown", fileCount: 0, archivePath: "", zipExit: "", verifyExit: "", uploadExit: "", message: "" }
 
   try {
     opts := ParseArgs(A_Args)
@@ -27,17 +29,24 @@ main() {
 
     ValidatePrereqs(cfg, opts.dryRun)
 
-    files := FileCollector.Collect(cfg.paths.watchDir, cfg.patterns.extensions, cfg.paths.tmpDir, opts.dryRun)
+    files := FileCollector.Collect(cfg.paths.watchDir, cfg.patterns.extensions, cfg.paths.tmpDir, opts.dryRun, cfg.patterns.include, cfg.patterns.exclude)
     count := files.Length
+    summary.fileCount := count
     Logger.Info("Files matched for today: " count)
 
     if (opts.dryRun) {
+      summary.status := "dry-run"
+      summary.message := "Dry-run"
+      SafeWriteSummary(baseDir, summary)
       ConsoleWrite("Dry-run: " count " files would be archived.")
       MsgBox "Dry-run: " count " files would be archived."
       return
     }
 
     if (count = 0) {
+      summary.status := "no-files"
+      summary.message := "No files matched today."
+      SafeWriteSummary(baseDir, summary)
       Logger.Warn("No files matched today. Nothing to do.")
       ConsoleWrite("No files matched today. Nothing to do.")
       MsgBox "No files matched today. Nothing to do."
@@ -47,12 +56,22 @@ main() {
     DirCreate(cfg.paths.outDir)
     archiveName := ZipPack.BuildArchiveName(cfg.zip.archiveName)
     archivePath := cfg.paths.outDir "\\" archiveName
+    summary.archivePath := archivePath
 
     zipExit := ZipPack.CreateArchive(cfg.zip.exe, cfg.paths.tmpDir, archivePath, EnvGet(cfg.zip.passwordEnv))
+    summary.zipExit := zipExit
     if (zipExit != 0)
       throw Error("7-Zip failed with exit code " zipExit)
 
+    if (cfg.zip.verify) {
+      verifyExit := ZipPack.VerifyArchive(cfg.zip.exe, archivePath, EnvGet(cfg.zip.passwordEnv))
+      summary.verifyExit := verifyExit
+      if (verifyExit != 0)
+        throw Error("7-Zip verify failed with exit code " verifyExit)
+    }
+
     uploadExit := RcloneUpload.Upload(cfg.rclone.exe, archivePath, cfg.rclone.remote, cfg.rclone.retries)
+    summary.uploadExit := uploadExit
     if (uploadExit != 0)
       throw Error("rclone failed with exit code " uploadExit)
 
@@ -65,6 +84,9 @@ main() {
     }
 
     Logger.Info("Backup complete: " archivePath)
+    summary.status := "success"
+    summary.message := "OK"
+    SafeWriteSummary(baseDir, summary)
     ConsoleWrite("Backup complete: " archivePath)
     MsgBox "Backup complete: " archivePath
   } catch as err {
@@ -72,6 +94,9 @@ main() {
     if (IsObject(cfg) && cfg.HasOwnProp("email") && cfg.email.enabled) {
       try Notify.Send(cfg.email, "Backup failed", err.Message)
     }
+    summary.status := "failed"
+    summary.message := err.Message
+    SafeWriteSummary(baseDir, summary)
     ConsoleWrite("Error: " err.Message)
     MsgBox "Error: " err.Message
     ExitApp 1
@@ -160,4 +185,10 @@ ValidatePrereqs(cfg, dryRun := false) {
 
 ConsoleWrite(text) {
   try FileAppend(text "`n", "*")
+}
+
+SafeWriteSummary(baseDir, summary) {
+  try Report.WriteDaily(baseDir, summary)
+  catch as err
+    Logger.Warn("Failed to write summary report: " err.Message)
 }

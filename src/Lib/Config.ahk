@@ -15,10 +15,13 @@ class Config {
     cfg.paths.tmpDir := this.ResolvePath(this.ExpandEnv(IniRead(path, "paths", "tmpDir", "")), baseDir)
 
     cfg.patterns.extensions := Trim(IniRead(path, "patterns", "extensions", ""))
+    cfg.patterns.include := Trim(IniRead(path, "patterns", "include", ""))
+    cfg.patterns.exclude := Trim(IniRead(path, "patterns", "exclude", ""))
 
     cfg.zip.exe := this.ResolvePath(this.ExpandEnv(IniRead(path, "zip", "exe", "")), baseDir)
     cfg.zip.passwordEnv := Trim(IniRead(path, "zip", "passwordEnv", ""))
     cfg.zip.archiveName := Trim(IniRead(path, "zip", "archiveName", ""))
+    cfg.zip.verify := Integer(IniRead(path, "zip", "verify", "0"))
 
     cfg.rclone.exe := this.ResolvePath(this.ExpandEnv(IniRead(path, "rclone", "exe", "")), baseDir)
     cfg.rclone.remote := Trim(IniRead(path, "rclone", "remote", ""))

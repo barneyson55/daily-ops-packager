@@ -36,6 +36,8 @@
 
 8) Run a dry-run
 - `src\OneClickBackup.ahk --config config\app.ini --dry-run`
+- or run both prereq check + dry-run in one step:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
 
 9) Run a real backup
 - `src\OneClickBackup.ahk --config config\app.ini`
@@ -45,3 +47,11 @@
   - Program: `C:\Path\To\AutoHotkey64.exe`
   - Arguments: `C:\Path\To\repo\src\OneClickBackup.ahk --config C:\Path\To\repo\config\app.ini`
   - Start in: `C:\Path\To\repo`
+- Or use the template:
+  - Edit `scripts\TaskScheduler-Daily.xml` placeholders:
+    - `__AHK_EXE__`, `__AHK_ARGS__`, `__WORKING_DIR__`, `__START_BOUNDARY__` (e.g., `2026-01-25T09:00:00`)
+  - Import with:
+    - `schtasks /Create /TN "OneClickBackupDaily" /XML C:\Path\To\repo\scripts\TaskScheduler-Daily.xml /F`
+
+11) Check daily summary report
+- `logs\summary_YYYYMMDD.csv` contains one line per run (status, counts, exit codes, message).

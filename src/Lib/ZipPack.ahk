@@ -24,4 +24,21 @@ class ZipPack {
     Logger.Info("7-Zip exit code: " result.exitCode)
     return result.exitCode
   }
+
+  static VerifyArchive(zipExe, archivePath, password) {
+    passArg := "-p" . Shell.Quote(password)
+    cmd := Shell.Quote(zipExe) . " t " . passArg . " " . Shell.Quote(archivePath)
+    logCmd := Shell.Quote(zipExe) . " t -p""***"" " . Shell.Quote(archivePath)
+
+    Logger.Info("Verifying archive: " logCmd)
+    result := Shell.Exec(cmd, "", true)
+
+    if (result.stdout != "")
+      Logger.Info("7-Zip verify stdout: " Trim(result.stdout))
+    if (result.stderr != "")
+      Logger.Warn("7-Zip verify stderr: " Trim(result.stderr))
+
+    Logger.Info("7-Zip verify exit code: " result.exitCode)
+    return result.exitCode
+  }
 }

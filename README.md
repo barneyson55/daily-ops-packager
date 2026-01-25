@@ -11,6 +11,7 @@ Small Windows automation that collects today's files from a watch directory, cop
    - `DAILY_SMTP_PASS` (only if email is enabled)
 4) Run a dry-run first:
    - `src\OneClickBackup.ahk --config config\app.ini --dry-run`
+   - or use the smoke test script: `scripts\SmokeTest.ps1 -Config config\app.ini`
 5) Run a real backup:
    - `src\OneClickBackup.ahk --config config\app.ini`
 
@@ -34,3 +35,4 @@ Small Windows automation that collects today's files from a watch directory, cop
 ## Notes
 - No secrets are stored in the repo; use environment variables.
 - Source files are never modified. Temp files are only removed after a successful upload.
+- Each run appends a summary line to `logs\summary_YYYYMMDD.csv`.
