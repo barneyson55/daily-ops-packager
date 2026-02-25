@@ -19,3 +19,8 @@
 ## No files matched
 - Ensure the files were modified today (local time).
 - Confirm `patterns.extensions` matches the files you expect.
+
+## ASPM TODO file path mismatch
+- Current canonical user backlog file is repository-root `USER_TODO.md` (uppercase), not `docs/user_todo.md`.
+- If automation reports `docs/user_todo.md` missing, treat it as "no docs user_todo" and continue from `docs/ai_todo.md`.
+- Optional normalization: add a small pointer file at `docs/user_todo.md` that references `../USER_TODO.md`.
