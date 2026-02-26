@@ -58,6 +58,7 @@
   - `src\OneClickBackup.ahk --config config\app.ini`
 
 - [ ] 10) Schedule it (Task Scheduler)
+  - [x] Added verify step guidance: trigger once with `schtasks /Run /TN "OneClickBackupDaily"` then query `schtasks /Query /TN "OneClickBackupDaily" /V /FO LIST` and confirm `Last Run Result: 0x0`.
   - Create a daily task:
     - Program: `C:\Path\To\AutoHotkey64.exe`
     - Arguments: `C:\Path\To\repo\src\OneClickBackup.ahk --config C:\Path\To\repo\config\app.ini`
