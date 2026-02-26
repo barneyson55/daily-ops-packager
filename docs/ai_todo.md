@@ -80,3 +80,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 7 by adding explicit fallback guidance to run prereq check via Windows PowerShell when `pwsh` is unavailable.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 7.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-26T1244Z -->
+## ASPM Sweep 2026-02-26T12:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 8 by adding explicit dry-run result verification guidance in `logs\summary_YYYYMMDD.csv`.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 8.
+- [x] Relevant check run: `git diff --check` (pass).

@@ -48,6 +48,7 @@
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckPrereqs.ps1 -Config config\app.ini`
 
 - [ ] 8) Run a dry-run
+  - [x] Added verify step guidance: confirm latest line in `logs\summary_YYYYMMDD.csv` reports a dry-run status (for example, contains `dry-run`/`DRY_RUN` and no fatal error message).
   - `src\OneClickBackup.ahk --config config\app.ini --dry-run`
   - or run both prereq check + dry-run in one step:
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
