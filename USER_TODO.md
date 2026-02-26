@@ -5,6 +5,7 @@
 - [ ] 1) Install AutoHotkey v2
   - [x] Added quick-install guidance (can be run in elevated PowerShell): `winget install --id AutoHotkey.AutoHotkey -e`
   - [x] Added verify step guidance: run `"C:\Program Files\AutoHotkey\AutoHotkey.exe" /ErrorStdOut /CP65001` (should print version/help without error).
+  - [x] Added PATH verification guidance: run `where AutoHotkey64.exe` (should resolve to the installed AutoHotkey v2 binary path).
   - Download and install AutoHotkey v2.
 
 - [ ] 2) Install 7-Zip
