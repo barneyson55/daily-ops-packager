@@ -18,6 +18,7 @@
   - [x] Added quick-install guidance (can be run in elevated PowerShell): `winget install --id Rclone.Rclone -e`
   - [x] Added verify step guidance: run `rclone version` (should print version/build info without error).
   - [x] Added concrete remote-create example: `rclone config create myremote local` (quick local test remote; replace type/params later for cloud target).
+  - [x] Added verify output guidance: run `rclone listremotes` and confirm `myremote:` appears in the output.
   - Install rclone.
   - Run `rclone config` and create a remote (example: `myremote`).
   - Verify with `rclone listremotes`.
