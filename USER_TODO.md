@@ -70,4 +70,5 @@
       - `schtasks /Create /TN "OneClickBackupDaily" /XML C:\Path\To\repo\scripts\TaskScheduler-Daily.xml /F`
 
 - [ ] 11) Check daily summary report
+  - [x] Added verify step guidance: run `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"` and confirm the line includes timestamp + status fields (and no parse/error text).
   - `logs\summary_YYYYMMDD.csv` contains one line per run (status, counts, exit codes, message).
