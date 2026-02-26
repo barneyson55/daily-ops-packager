@@ -46,6 +46,7 @@
 
 - [ ] 6) Optional: enable email notifications
   - [x] Added verify step guidance: run `powershell -NoProfile -Command "Select-String -Path config\app.ini -Pattern '^enabled\s*=\s*1$' -SimpleMatch:$false"` from the `[email]` section context (should show `enabled = 1`).
+  - [x] Added concrete SMTP field verification guidance: run `powershell -NoProfile -Command "Select-String -Path config\app.ini -Pattern '^(host|port|username|from|to)\s*=\s*.+$' -SimpleMatch:$false"` and confirm all required email fields appear with non-empty values.
   - In `config\app.ini` set `email.enabled=1` and fill SMTP details.
 
 - [ ] 7) Run prereq check
