@@ -30,6 +30,7 @@
     - `rclone.remote` -> your remote (e.g., `myremote:backups/daily`)
 
 - [ ] 5) Set environment variables for secrets
+  - [x] Added verify step guidance: run `powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('DAILY_ZIP_PASS','User'); [Environment]::GetEnvironmentVariable('DAILY_SMTP_PASS','User')"` (both should print non-empty values).
   - Command Prompt:
     - `setx DAILY_ZIP_PASS "yourZipPassword"`
     - `setx DAILY_SMTP_PASS "yourSmtpPassword"`
