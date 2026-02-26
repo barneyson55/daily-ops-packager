@@ -141,3 +141,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 6 by adding explicit SMTP required-field verification guidance (`host|port|username|from|to`) in `config\app.ini`.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 6.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-26T2244Z -->
+## ASPM Sweep 2026-02-26T22:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 1 by adding explicit major-version verification guidance for AutoHotkey (`v2.x` check via `findstr`).
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 1.
+- [x] Relevant check run: `git diff --check` (pass).
