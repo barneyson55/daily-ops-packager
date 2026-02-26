@@ -15,6 +15,7 @@
 
 - [ ] 3) Install and configure rclone
   - [x] Added quick-install guidance (can be run in elevated PowerShell): `winget install --id Rclone.Rclone -e`
+  - [x] Added verify step guidance: run `rclone version` (should print version/build info without error).
   - Install rclone.
   - Run `rclone config` and create a remote (example: `myremote`).
   - Verify with `rclone listremotes`.
