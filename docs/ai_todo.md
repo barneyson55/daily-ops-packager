@@ -26,3 +26,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 2 by adding explicit `winget` install command for 7-Zip.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 2.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-26T0344Z -->
+## ASPM Sweep 2026-02-26T03:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 1 by adding explicit `winget` install command for AutoHotkey v2.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 1.
+- [x] Relevant check run: `git diff --check` (pass).

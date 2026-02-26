@@ -3,6 +3,7 @@
 - [x] 0) Repo helper prepared: `scripts\Init-Config.ps1` added to bootstrap `config\app.ini` from sample.
 
 - [ ] 1) Install AutoHotkey v2
+  - [x] Added quick-install guidance (can be run in elevated PowerShell): `winget install --id AutoHotkey.AutoHotkey -e`
   - Download and install AutoHotkey v2.
 
 - [ ] 2) Install 7-Zip
