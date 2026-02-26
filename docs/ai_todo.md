@@ -38,3 +38,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 3 by adding explicit `winget` install command for rclone.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 3.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-26T0544Z -->
+## ASPM Sweep 2026-02-26T05:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 1 by adding an explicit AutoHotkey verification command.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 1.
+- [x] Relevant check run: `git diff --check` (pass).
