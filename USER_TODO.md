@@ -21,6 +21,7 @@
   - Verify with `rclone listremotes`.
 
 - [ ] 4) Create your config
+  - [x] Added verify step guidance: run `powershell -NoProfile -Command "Test-Path config\app.ini"` (should return `True` after init script).
   - Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Init-Config.ps1`
   - Edit `config\app.ini`:
     - `paths.watchDir` -> your source folder
