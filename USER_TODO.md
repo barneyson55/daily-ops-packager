@@ -11,6 +11,7 @@
 - [ ] 2) Install 7-Zip
   - [x] Added quick-install guidance (can be run in elevated PowerShell): `winget install --id 7zip.7zip -e`
   - [x] Added verify step guidance: run `"C:\Program Files\7-Zip\7z.exe" i` (should print 7-Zip version/build info without error).
+  - [x] Added PATH verification guidance: run `where 7z.exe` (should resolve to the installed 7-Zip binary path).
   - Install 7-Zip and confirm `7z.exe` path, e.g.:
     - `C:\Program Files\7-Zip\7z.exe`
 

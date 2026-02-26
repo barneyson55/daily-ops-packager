@@ -129,3 +129,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 3 by adding explicit `rclone listremotes` output validation (`myremote:` must appear).
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 3.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-26T2044Z -->
+## ASPM Sweep 2026-02-26T20:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 2 by adding explicit PATH verification guidance for `7z.exe` (`where 7z.exe`).
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 2.
+- [x] Relevant check run: `git diff --check` (pass).
