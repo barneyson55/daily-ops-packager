@@ -44,6 +44,7 @@
   - In `config\app.ini` set `email.enabled=1` and fill SMTP details.
 
 - [ ] 7) Run prereq check
+  - [x] Added fallback guidance: if `pwsh` is unavailable, run with Windows PowerShell (`powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckPrereqs.ps1 -Config config\app.ini`).
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckPrereqs.ps1 -Config config\app.ini`
 
 - [ ] 8) Run a dry-run
