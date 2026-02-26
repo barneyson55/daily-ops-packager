@@ -40,6 +40,7 @@
   - Log off/on to refresh env vars.
 
 - [ ] 6) Optional: enable email notifications
+  - [x] Added verify step guidance: run `powershell -NoProfile -Command "Select-String -Path config\app.ini -Pattern '^enabled\s*=\s*1$' -SimpleMatch:$false"` from the `[email]` section context (should show `enabled = 1`).
   - In `config\app.ini` set `email.enabled=1` and fill SMTP details.
 
 - [ ] 7) Run prereq check

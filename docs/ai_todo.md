@@ -68,3 +68,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 5 by adding explicit user-scope env-var verification guidance for `DAILY_ZIP_PASS` and `DAILY_SMTP_PASS`.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 5.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-26T1044Z -->
+## ASPM Sweep 2026-02-26T10:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 6 by adding explicit `enabled = 1` verification guidance for the `[email]` config section.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 6.
+- [x] Relevant check run: `git diff --check` (pass).
