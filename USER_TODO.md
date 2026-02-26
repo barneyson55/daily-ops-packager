@@ -12,6 +12,7 @@
     - `C:\Program Files\7-Zip\7z.exe`
 
 - [ ] 3) Install and configure rclone
+  - [x] Added quick-install guidance (can be run in elevated PowerShell): `winget install --id Rclone.Rclone -e`
   - Install rclone.
   - Run `rclone config` and create a remote (example: `myremote`).
   - Verify with `rclone listremotes`.
