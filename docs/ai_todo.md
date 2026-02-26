@@ -20,3 +20,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Advanced one concrete user-todo milestone: added `scripts/Init-Config.ps1` to bootstrap `config/app.ini` from sample.
 - [x] Converted `USER_TODO.md` into checkbox-based progress tracker and linked step 4 to the new helper script.
 - [x] Relevant check run: attempted `pwsh ... scripts/CheckPrereqs.ps1 -Config config/app.sample.ini` (blocked in this runner: `pwsh: not found`).
+
+<!-- ASPM_SWEEP_2026-02-26T0244Z -->
+## ASPM Sweep 2026-02-26T02:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 2 by adding explicit `winget` install command for 7-Zip.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 2.
+- [x] Relevant check run: `git diff --check` (pass).
