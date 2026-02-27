@@ -183,3 +183,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 4 by adding explicit required-keys verification guidance for `watchDir|zip.exe|rclone.exe|rclone.remote` in `config\app.ini`.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 4.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-27T0644Z -->
+## ASPM Sweep 2026-02-27T06:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 5 by adding active-session env-var refresh verification guidance after `setx`/`SetEnvironmentVariable`.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 5.
+- [x] Relevant check run: `git diff --check` (pass).
