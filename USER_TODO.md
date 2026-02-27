@@ -82,6 +82,7 @@
 - [ ] 10) Schedule it (Task Scheduler)
   - [x] Added verify step guidance: trigger once with `schtasks /Run /TN "OneClickBackupDaily"` then query `schtasks /Query /TN "OneClickBackupDaily" /V /FO LIST` and confirm `Last Run Result: 0x0`.
   - [x] Added schedule-time verification guidance: run `schtasks /Query /TN "OneClickBackupDaily" /V /FO LIST | findstr /I "Schedule Next Run Time"` and confirm the next run slot matches your intended daily window.
+  - [x] Added direct CLI-create fallback guidance: `schtasks /Create /SC DAILY /TN "OneClickBackupDaily" /TR "\"C:\Path\To\AutoHotkey64.exe\" \"C:\Path\To\repo\src\OneClickBackup.ahk\" --config \"C:\Path\To\repo\config\app.ini\"" /ST 09:00 /F` when XML import is not preferred.
   - Create a daily task:
     - Program: `C:\Path\To\AutoHotkey64.exe`
     - Arguments: `C:\Path\To\repo\src\OneClickBackup.ahk --config C:\Path\To\repo\config\app.ini`

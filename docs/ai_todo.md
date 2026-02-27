@@ -245,3 +245,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 2 by adding unattended/silent `winget` install guidance for 7-Zip.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 2.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-27T1644Z -->
+## ASPM Sweep 2026-02-27T16:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 10 by adding direct `schtasks /Create` CLI fallback guidance when XML import is not preferred.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 10.
+- [x] Relevant check run: `git diff --check` (pass).
