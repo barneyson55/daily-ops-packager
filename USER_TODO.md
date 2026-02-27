@@ -48,6 +48,7 @@
 - [ ] 5) Set environment variables for secrets
   - [x] Added verify step guidance: run `powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('DAILY_ZIP_PASS','User'); [Environment]::GetEnvironmentVariable('DAILY_SMTP_PASS','User')"` (both should print non-empty values).
   - [x] Added current-session refresh guidance: after setting vars, restart terminal (or launch a new shell) then run `echo %DAILY_ZIP_PASS%` / `echo %DAILY_SMTP_PASS%` to confirm values are loaded in the active session.
+- [x] Added no-echo verification guidance for secrets in PowerShell: run `powershell -NoProfile -Command "$a=[Environment]::GetEnvironmentVariable('DAILY_ZIP_PASS','User');$b=[Environment]::GetEnvironmentVariable('DAILY_SMTP_PASS','User'); if([string]::IsNullOrWhiteSpace($a)-or[string]::IsNullOrWhiteSpace($b)){Write-Error 'Missing secret env var'} else {'Secrets present (values hidden)'}"` to confirm presence without printing secret values.
   - Command Prompt:
     - `setx DAILY_ZIP_PASS "yourZipPassword"`
     - `setx DAILY_SMTP_PASS "yourSmtpPassword"`

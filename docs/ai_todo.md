@@ -251,3 +251,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 10 by adding direct `schtasks /Create` CLI fallback guidance when XML import is not preferred.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 10.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-27T1744Z -->
+## ASPM Sweep 2026-02-27T17:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 5 by adding no-echo secret env-var presence verification guidance (values stay hidden).
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 5.
+- [x] Relevant check run: `git diff --check` (pass).
