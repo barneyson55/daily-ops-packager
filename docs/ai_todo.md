@@ -269,3 +269,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 2 by adding explicit `winget list --id 7zip.7zip -e` package-registration verification guidance.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 2.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-27T2044Z -->
+## ASPM Sweep 2026-02-27T20:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 3 by adding non-interactive remote health-check guidance (`rclone about myremote:` fallback `rclone lsd myremote:`).
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 3.
+- [x] Relevant check run: `git diff --check` (pass).
