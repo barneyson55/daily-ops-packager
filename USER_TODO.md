@@ -101,4 +101,5 @@
 - [ ] 11) Check daily summary report
   - [x] Added missing-file triage guidance: if today's `logs\summary_YYYYMMDD.csv` is absent, run one dry-run first, then re-run the tail command to validate line format.
   - [x] Added verify step guidance: run `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"` and confirm the line includes timestamp + status fields (and no parse/error text).
+  - [x] Added CSV-header sanity-check guidance: run `powershell -NoProfile -Command "$h=(Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -TotalCount 1); if($h -match 'timestamp' -and $h -match 'status'){ 'Header OK' } else { Write-Error 'Unexpected or missing header' }"` before tail checks.
   - `logs\summary_YYYYMMDD.csv` contains one line per run (status, counts, exit codes, message).
