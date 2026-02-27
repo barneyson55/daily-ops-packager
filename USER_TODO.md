@@ -11,6 +11,7 @@
   - [x] Added explicit install-scope guidance: if install requires admin rights, rerun with `winget install --id AutoHotkey.AutoHotkey -e --scope machine`; otherwise keep default user scope.
   - [x] Added silent-install guidance: append `--silent --accept-package-agreements --accept-source-agreements` to the winget command for unattended setup.
   - [x] Added post-install launcher verification guidance: run `Get-Command AutoHotkey64.exe | Select-Object -ExpandProperty Source` in PowerShell to confirm the resolved executable path.
+  - [x] Added file-version verification guidance: run `powershell -NoProfile -Command "(Get-Item 'C:\Program Files\AutoHotkey\AutoHotkey64.exe').VersionInfo.FileVersion"` and confirm it returns a non-empty version string.
   - Download and install AutoHotkey v2.
 
 - [ ] 2) Install 7-Zip
