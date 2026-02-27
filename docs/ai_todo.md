@@ -201,3 +201,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 3 by adding `rclone config file` path verification guidance before first real run.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 3.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-27T0944Z -->
+## ASPM Sweep 2026-02-27T09:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 8 by adding a quick PowerShell tail command to validate the freshest dry-run summary row immediately after execution.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 8.
+- [x] Relevant check run: `git diff --check` (pass).
