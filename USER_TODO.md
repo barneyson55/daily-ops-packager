@@ -9,6 +9,7 @@
   - [x] Added major-version verification guidance: run `"C:\Program Files\AutoHotkey\AutoHotkey.exe" /ErrorStdOut /CP65001 | findstr /R "^v2\."` (should match a `v2.x` line).
   - [x] Added package-registration verification guidance: run `winget list --id AutoHotkey.AutoHotkey -e` (should show installed package/version).
   - [x] Added explicit install-scope guidance: if install requires admin rights, rerun with `winget install --id AutoHotkey.AutoHotkey -e --scope machine`; otherwise keep default user scope.
+  - [x] Added silent-install guidance: append `--silent --accept-package-agreements --accept-source-agreements` to the winget command for unattended setup.
   - Download and install AutoHotkey v2.
 
 - [ ] 2) Install 7-Zip
