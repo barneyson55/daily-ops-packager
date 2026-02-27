@@ -220,3 +220,10 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 10 by adding a `schtasks` next-run-time verification command for daily schedule sanity checks.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 10.
 - [x] Relevant check run: `git diff --check` (pass).
+
+
+<!-- ASPM_SWEEP_2026-02-27T1244Z -->
+## ASPM Sweep 2026-02-27T12:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 6 by adding SMTP transport/port sanity guidance (587+STARTTLS or 465+implicit TLS).
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 6.
+- [x] Relevant check run: `git diff --check` (pass).
