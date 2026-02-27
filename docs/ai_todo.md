@@ -239,3 +239,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 1 by adding post-install launcher resolution verification guidance for `AutoHotkey64.exe`.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 1.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-27T1544Z -->
+## ASPM Sweep 2026-02-27T15:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 2 by adding unattended/silent `winget` install guidance for 7-Zip.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 2.
+- [x] Relevant check run: `git diff --check` (pass).
