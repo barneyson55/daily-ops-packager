@@ -33,6 +33,7 @@
 - [ ] 4) Create your config
   - [x] Added verify step guidance: run `powershell -NoProfile -Command "Test-Path config\app.ini"` (should return `True` after init script).
   - [x] Added concrete sample values guidance for quick first edit: `paths.watchDir=C:\DailySource`, `zip.exe=C:\Program Files\7-Zip\7z.exe`, `rclone.exe=C:\Program Files\rclone\rclone.exe`, `rclone.remote=myremote:backups/daily`.
+  - [x] Added required-keys verification guidance: run `powershell -NoProfile -Command "Select-String -Path config\app.ini -Pattern '^(watchDir|zip\.exe|rclone\.exe|rclone\.remote)\s*=\s*.+$' -SimpleMatch:$false"` and confirm all four keys are present with non-empty values.
   - Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Init-Config.ps1`
   - Edit `config\app.ini`:
     - `paths.watchDir` -> your source folder

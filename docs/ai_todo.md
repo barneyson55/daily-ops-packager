@@ -177,3 +177,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 3 by adding explicit rclone install-scope guidance (`--scope machine` if admin elevation is required).
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 3.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-27T0544Z -->
+## ASPM Sweep 2026-02-27T05:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 4 by adding explicit required-keys verification guidance for `watchDir|zip.exe|rclone.exe|rclone.remote` in `config\app.ini`.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 4.
+- [x] Relevant check run: `git diff --check` (pass).
