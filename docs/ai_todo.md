@@ -189,3 +189,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 5 by adding active-session env-var refresh verification guidance after `setx`/`SetEnvironmentVariable`.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 5.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-27T0744Z -->
+## ASPM Sweep 2026-02-27T07:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 11 by adding missing-file triage guidance before daily-summary tail verification.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 11.
+- [x] Relevant check run: `git diff --check` (pass).
