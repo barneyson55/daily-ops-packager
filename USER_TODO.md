@@ -54,6 +54,7 @@
 
 - [ ] 7) Run prereq check
   - [x] Added fallback guidance: if `pwsh` is unavailable, run with Windows PowerShell (`powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckPrereqs.ps1 -Config config\app.ini`).
+  - [x] Added exit-code verification guidance: after the prereq command, run `echo %ERRORLEVEL%` (or `powershell -NoProfile -Command "$LASTEXITCODE"`) and confirm it is `0`.
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckPrereqs.ps1 -Config config\app.ini`
 
 - [ ] 8) Run a dry-run
