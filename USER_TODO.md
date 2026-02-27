@@ -72,6 +72,7 @@
 
 - [ ] 9) Run a real backup
   - [x] Added verify step guidance: check latest line in `logs\summary_YYYYMMDD.csv` shows a successful non-dry-run upload/archive result (for example contains `OK`/`SUCCESS` and not `DRY_RUN`).
+  - [x] Added quick tail command guidance for real-run verification: run `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"` right after real backup to confirm the newest success row.
   - `src\OneClickBackup.ahk --config config\app.ini`
 
 - [ ] 10) Schedule it (Task Scheduler)
