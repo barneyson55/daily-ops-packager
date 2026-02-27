@@ -26,6 +26,7 @@
   - [x] Added concrete remote-create example: `rclone config create myremote local` (quick local test remote; replace type/params later for cloud target).
   - [x] Added verify output guidance: run `rclone listremotes` and confirm `myremote:` appears in the output.
   - [x] Added explicit install-scope guidance: if install requires admin rights, rerun with `winget install --id Rclone.Rclone -e --scope machine`; otherwise keep default user scope.
+  - [x] Added config-file verification guidance: run `rclone config file` and confirm the shown path exists before first real backup run.
   - Install rclone.
   - Run `rclone config` and create a remote (example: `myremote`).
   - Verify with `rclone listremotes`.
