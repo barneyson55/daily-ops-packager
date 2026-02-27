@@ -165,3 +165,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 7 by adding explicit prereq-check exit-code verification guidance (`%ERRORLEVEL%` / `$LASTEXITCODE` must be `0`).
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 7.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-27T0344Z -->
+## ASPM Sweep 2026-02-27T03:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 2 by adding explicit 7-Zip install-scope guidance (`--scope machine` if admin elevation is required).
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 2.
+- [x] Relevant check run: `git diff --check` (pass).

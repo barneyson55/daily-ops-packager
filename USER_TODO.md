@@ -16,6 +16,7 @@
   - [x] Added verify step guidance: run `"C:\Program Files\7-Zip\7z.exe" i` (should print 7-Zip version/build info without error).
   - [x] Added PATH verification guidance: run `where 7z.exe` (should resolve to the installed 7-Zip binary path).
   - [x] Added compact version-check guidance: run `"C:\Program Files\7-Zip\7z.exe" | findstr /R "^7-Zip"` (should print a `7-Zip` version banner line).
+  - [x] Added explicit install-scope guidance: if install requires admin rights, rerun with `winget install --id 7zip.7zip -e --scope machine`; otherwise keep default user scope.
   - Install 7-Zip and confirm `7z.exe` path, e.g.:
     - `C:\Program Files\7-Zip\7z.exe`
 
