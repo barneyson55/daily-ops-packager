@@ -214,3 +214,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 9 by adding a quick PowerShell tail command to validate the freshest real-run summary row immediately after execution.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 9.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-27T1144Z -->
+## ASPM Sweep 2026-02-27T11:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 10 by adding a `schtasks` next-run-time verification command for daily schedule sanity checks.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 10.
+- [x] Relevant check run: `git diff --check` (pass).
