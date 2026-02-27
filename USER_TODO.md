@@ -7,6 +7,7 @@
   - [x] Added verify step guidance: run `"C:\Program Files\AutoHotkey\AutoHotkey.exe" /ErrorStdOut /CP65001` (should print version/help without error).
   - [x] Added PATH verification guidance: run `where AutoHotkey64.exe` (should resolve to the installed AutoHotkey v2 binary path).
   - [x] Added major-version verification guidance: run `"C:\Program Files\AutoHotkey\AutoHotkey.exe" /ErrorStdOut /CP65001 | findstr /R "^v2\."` (should match a `v2.x` line).
+  - [x] Added package-registration verification guidance: run `winget list --id AutoHotkey.AutoHotkey -e` (should show installed package/version).
   - Download and install AutoHotkey v2.
 
 - [ ] 2) Install 7-Zip
