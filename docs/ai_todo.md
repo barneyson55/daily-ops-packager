@@ -335,3 +335,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 9 by adding explicit real-run exit-code verification guidance (`%ERRORLEVEL%`/`$LASTEXITCODE` must be `0`).
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 9.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-28T0744Z -->
+## ASPM Sweep 2026-02-28T07:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 4 by adding path-existence verification guidance for `watchDir`, `zip.exe`, and `rclone.exe` values from `config\app.ini`.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 4.
+- [x] Relevant check run: `git diff --check` (pass).
