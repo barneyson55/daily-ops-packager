@@ -16,6 +16,7 @@
   - [x] Added winget source-refresh fallback guidance: if install/search fails, run `winget source reset --force` then `winget source update` before retrying AutoHotkey install.
   - [x] Added non-winget fallback guidance: if winget is unavailable, download AutoHotkey v2 from https://www.autohotkey.com/download/ahk-v2.exe, run the installer, then re-run the verification commands above.
   - [x] Added old-major-version conflict check guidance: run `where AutoHotkey.exe` and if the resolved binary reports `v1.x`, uninstall AutoHotkey v1 before continuing with v2-only setup.
+  - [x] Added version-drift remediation guidance: if AutoHotkey is already installed but outdated, run `winget upgrade --id AutoHotkey.AutoHotkey -e --silent --accept-package-agreements --accept-source-agreements` then re-run version checks.
   - Download and install AutoHotkey v2.
 
 - [ ] 2) Install 7-Zip
