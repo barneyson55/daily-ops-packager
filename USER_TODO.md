@@ -28,6 +28,7 @@
   - [x] Added package-registration verification guidance: run `winget list --id 7zip.7zip -e` (should show installed package/version).
   - [x] Added file-version verification guidance: run `powershell -NoProfile -Command "(Get-Item 'C:\Program Files\7-Zip\7z.exe').VersionInfo.FileVersion"` and confirm it returns a non-empty version string.
   - [x] Added hash-integrity verification guidance: run `powershell -NoProfile -Command "Get-FileHash 'C:\Program Files\7-Zip\7z.exe' -Algorithm SHA256"` and archive the hash for future drift/tamper checks after updates.
+  - [x] Added user-scope install-path fallback guidance: if `C:\Program Files\7-Zip\7z.exe` is missing, run `powershell -NoProfile -Command "Get-ChildItem \"$env:LOCALAPPDATA\Programs\7-Zip\7z.exe\" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName"` and use the returned path for verification.
   - Install 7-Zip and confirm `7z.exe` path, e.g.:
     - `C:\Program Files\7-Zip\7z.exe`
 
