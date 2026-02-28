@@ -15,6 +15,7 @@
   - [x] Added user-scope install-path fallback guidance: if `C:\Program Files\AutoHotkey\AutoHotkey64.exe` is missing, run `powershell -NoProfile -Command "Get-ChildItem \"$env:LOCALAPPDATA\Programs\AutoHotkey\AutoHotkey64.exe\" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName"` and use the returned path for verification.
   - [x] Added winget source-refresh fallback guidance: if install/search fails, run `winget source reset --force` then `winget source update` before retrying AutoHotkey install.
   - [x] Added non-winget fallback guidance: if winget is unavailable, download AutoHotkey v2 from https://www.autohotkey.com/download/ahk-v2.exe, run the installer, then re-run the verification commands above.
+  - [x] Added old-major-version conflict check guidance: run `where AutoHotkey.exe` and if the resolved binary reports `v1.x`, uninstall AutoHotkey v1 before continuing with v2-only setup.
   - Download and install AutoHotkey v2.
 
 - [ ] 2) Install 7-Zip

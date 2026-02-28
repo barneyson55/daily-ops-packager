@@ -258,6 +258,12 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 5.
 - [x] Relevant check run: `git diff --check` (pass).
 
+<!-- ASPM_SWEEP_2026-02-28T1244Z -->
+## ASPM Sweep 2026-02-28T12:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 1 by adding AutoHotkey v1/v2 conflict-check guidance (`where AutoHotkey.exe` + v1 uninstall note).
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 1.
+- [x] Relevant check run: `git diff --check` (pass).
+
 <!-- ASPM_SWEEP_2026-02-27T1844Z -->
 ## ASPM Sweep 2026-02-27T18:44Z
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 1 by adding explicit AutoHotkey64 file-version verification guidance.
