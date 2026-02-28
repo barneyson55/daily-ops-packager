@@ -299,3 +299,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 11 by adding daily summary row-count verification guidance.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 11.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-28T0144Z -->
+## ASPM Sweep 2026-02-28T01:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 2 by adding explicit 7-Zip file-version verification guidance for `7z.exe`.
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 2.
+- [x] Relevant check run: `git diff --check` (pass).

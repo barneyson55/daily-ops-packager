@@ -22,6 +22,7 @@
   - [x] Added explicit install-scope guidance: if install requires admin rights, rerun with `winget install --id 7zip.7zip -e --scope machine`; otherwise keep default user scope.
   - [x] Added silent-install guidance: append `--silent --accept-package-agreements --accept-source-agreements` to the winget command for unattended setup.
   - [x] Added package-registration verification guidance: run `winget list --id 7zip.7zip -e` (should show installed package/version).
+  - [x] Added file-version verification guidance: run `powershell -NoProfile -Command "(Get-Item 'C:\Program Files\7-Zip\7z.exe').VersionInfo.FileVersion"` and confirm it returns a non-empty version string.
   - Install 7-Zip and confirm `7z.exe` path, e.g.:
     - `C:\Program Files\7-Zip\7z.exe`
 
