@@ -18,6 +18,7 @@
   - [x] Added old-major-version conflict check guidance: run `where AutoHotkey.exe` and if the resolved binary reports `v1.x`, uninstall AutoHotkey v1 before continuing with v2-only setup.
   - [x] Added package-metadata preflight guidance: run `winget show --id AutoHotkey.AutoHotkey -e` to confirm expected publisher/version before install or upgrade.
   - [x] Added version-drift remediation guidance: if AutoHotkey is already installed but outdated, run `winget upgrade --id AutoHotkey.AutoHotkey -e --silent --accept-package-agreements --accept-source-agreements` then re-run version checks.
+  - [x] Added install-log capture guidance: run `winget install --id AutoHotkey.AutoHotkey -e --silent --accept-package-agreements --accept-source-agreements --log "%TEMP%\winget-autohotkey-install.log"` to retain a support-ready installer trace.
   - Download and install AutoHotkey v2.
 
 - [ ] 2) Install 7-Zip
