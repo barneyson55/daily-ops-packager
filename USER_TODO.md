@@ -34,6 +34,7 @@
   - [x] Added explicit install-scope guidance: if install requires admin rights, rerun with `winget install --id Rclone.Rclone -e --scope machine`; otherwise keep default user scope.
   - [x] Added config-file verification guidance: run `rclone config file` and confirm the shown path exists before first real backup run.
   - [x] Added non-interactive remote health-check guidance: run `rclone about myremote:` (or `rclone lsd myremote:` when `about` is unsupported) to verify the remote is reachable before first real backup.
+  - [x] Added config-file profile sanity-check guidance: run `rclone config show myremote` (or `rclone config dump --config "$(rclone config file | Select-String -Pattern 'rclone\.conf' | ForEach-Object { $_.ToString().Split(':',2)[1].Trim() })"`) and confirm the remote points to the intended backend/path before enabling scheduled runs.
   - Install rclone.
   - Run `rclone config` and create a remote (example: `myremote`).
   - Verify with `rclone listremotes`.
