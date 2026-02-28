@@ -45,6 +45,7 @@
   - [x] Added non-interactive remote health-check guidance: run `rclone about myremote:` (or `rclone lsd myremote:` when `about` is unsupported) to verify the remote is reachable before first real backup.
   - [x] Added config-file profile sanity-check guidance: run `rclone config show myremote` (or `rclone config dump --config "$(rclone config file | Select-String -Pattern 'rclone\.conf' | ForEach-Object { $_.ToString().Split(':',2)[1].Trim() })"`) and confirm the remote points to the intended backend/path before enabling scheduled runs.
   - [x] Added package-registration verification guidance: run `winget list --id Rclone.Rclone -e` (should show installed package/version).
+  - [x] Added version-drift remediation guidance: if rclone is installed but outdated, run `winget upgrade --id Rclone.Rclone -e --silent --accept-package-agreements --accept-source-agreements` then re-run `rclone version`.
   - Install rclone.
   - Run `rclone config` and create a remote (example: `myremote`).
   - Verify with `rclone listremotes`.
