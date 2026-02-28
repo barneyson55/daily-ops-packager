@@ -80,6 +80,7 @@
 - [ ] 8) Run a dry-run
   - [x] Added verify step guidance: confirm latest line in `logs\summary_YYYYMMDD.csv` reports a dry-run status (for example, contains `dry-run`/`DRY_RUN` and no fatal error message).
   - [x] Added quick tail command guidance for dry-run verification: run `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"` right after dry-run to inspect the freshest status row.
+  - [x] Added explicit dry-run exit-code check guidance: after `src\OneClickBackup.ahk --config config\app.ini --dry-run`, run `echo %ERRORLEVEL%` (or `$LASTEXITCODE` in PowerShell) and expect `0`.
   - `src\OneClickBackup.ahk --config config\app.ini --dry-run`
   - or run both prereq check + dry-run in one step:
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`

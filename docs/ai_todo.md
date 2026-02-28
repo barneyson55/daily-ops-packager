@@ -323,3 +323,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 1 by adding winget source reset/update fallback guidance before retrying AutoHotkey install.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 1.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-02-28T0544Z -->
+## ASPM Sweep 2026-02-28T05:44Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 8 by adding explicit dry-run exit-code verification guidance (`%ERRORLEVEL%` / `$LASTEXITCODE` must be `0`).
+- [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 8.
+- [x] Relevant check run: `git diff --check` (pass).
