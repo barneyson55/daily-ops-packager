@@ -5,6 +5,7 @@ param(
   [string]$AhkExe = "",
   [string]$ScheduledTaskName = "",
   [switch]$IncludeRealRun,
+  [switch]$ConfirmSafeRealRun,
   [switch]$ObservedDefaultRunHeadless,
   [switch]$ObservedScheduledTaskHeadless
 )
@@ -49,6 +50,10 @@ if (-not (Test-Path $ahkScript)) {
   Write-Error "AHK script not found: $ahkScript"
   exit 1
 }
+if ($IncludeRealRun -and -not $ConfirmSafeRealRun) {
+  Write-Error 'Refusing to perform the real backup run without explicit acknowledgement. Review config\app.ini and rerun with -IncludeRealRun -ConfirmSafeRealRun only when the configured upload/email target is safe.'
+  exit 1
+}
 
 function Resolve-AhkExe([string]$Candidate) {
   if ($Candidate) {
@@ -64,6 +69,66 @@ function Resolve-AhkExe([string]$Candidate) {
   }
 
   return ""
+}
+
+function Get-IniValues([string]$Path) {
+  $values = @{}
+  $current = ""
+
+  foreach ($line in Get-Content $Path) {
+    $trimmed = $line.Trim()
+    if ($trimmed -match '^\[(.+)\]$') {
+      $current = $Matches[1]
+      continue
+    }
+    if ($trimmed -match '^(.*?)=(.*)$') {
+      $key = $Matches[1].Trim()
+      $value = [Environment]::ExpandEnvironmentVariables($Matches[2].Trim())
+      if ($current -ne "") {
+        $fullKey = "$current.$key"
+        if ($value -and $fullKey -in @('paths.watchDir', 'paths.outDir', 'paths.tmpDir', 'zip.exe', 'rclone.exe')) {
+          $isAbsolute = ($value -match '^[A-Za-z]:\\') -or $value.StartsWith('\\')
+          if (-not $isAbsolute) {
+            $value = Join-Path $base $value
+          }
+        }
+        $values[$fullKey] = $value
+      }
+    }
+  }
+
+  return $values
+}
+
+function Show-ConfigValue([string]$Value, [string]$Fallback = '(unset)') {
+  if ([string]::IsNullOrWhiteSpace($Value)) {
+    return $Fallback
+  }
+
+  return $Value
+}
+
+function Mask-EmailAddress([string]$Value) {
+  if ([string]::IsNullOrWhiteSpace($Value)) {
+    return '(unset)'
+  }
+
+  if ($Value -notmatch '^(?<local>[^@]+)@(?<domain>.+)$') {
+    return $Value
+  }
+
+  $local = $Matches['local']
+  $domain = $Matches['domain']
+  $visible = if ($local.Length -gt 1) { $local.Substring(0, 1) + '***' } else { '***' }
+  return "$visible@$domain"
+}
+
+function Test-PlaceholderValue([string]$Value) {
+  if ([string]::IsNullOrWhiteSpace($Value)) {
+    return $false
+  }
+
+  return ($Value -match 'example\.com|example\\|^myremote:|sample|placeholder')
 }
 
 function Invoke-CapturedStep {
@@ -130,6 +195,7 @@ try {
 }
 
 $resolvedAhkExe = Resolve-AhkExe $AhkExe
+$configValues = Get-IniValues $configPath
 
 $results = @()
 $results += Invoke-CapturedStep -Name "Runtime context" -Command 'built-in capture (computer/user/os/paths)' -ScriptBlock {
@@ -144,6 +210,54 @@ $results += Invoke-CapturedStep -Name "Runtime context" -Command 'built-in captu
     "AhkExe: $(if ($resolvedAhkExe) { $resolvedAhkExe } else { '(not resolved yet)' })",
     "SummaryPath: $summaryPath",
     "BackupLogPath: $backupLogPath"
+  )
+}
+$results += Invoke-CapturedStep -Name "Real-run safety review" -Command 'built-in capture (resolved config targets and env readiness)' -ScriptBlock {
+  $watchDir = $configValues['paths.watchDir']
+  $outDir = $configValues['paths.outDir']
+  $tmpDir = $configValues['paths.tmpDir']
+  $zipExe = $configValues['zip.exe']
+  $zipPasswordEnv = $configValues['zip.passwordEnv']
+  $rcloneExe = $configValues['rclone.exe']
+  $rcloneRemote = $configValues['rclone.remote']
+  $emailEnabled = [int](Show-ConfigValue $configValues['email.enabled'] '0')
+  $emailFrom = $configValues['email.from']
+  $emailTo = $configValues['email.to']
+  $smtpPasswordEnv = $configValues['email.passwordEnv']
+
+  $realRunEffects = @()
+  if (-not [string]::IsNullOrWhiteSpace($rcloneRemote)) {
+    $realRunEffects += "upload->$rcloneRemote"
+  }
+  if ($emailEnabled -eq 1) {
+    $realRunEffects += ("email->{0}" -f (Mask-EmailAddress $emailTo))
+  }
+  if ($realRunEffects.Count -eq 0) {
+    $realRunEffects += 'local archive only (no remote/email target detected)'
+  }
+
+  @(
+    "WatchDir: $(Show-ConfigValue $watchDir)",
+    "WatchDirExists: $(if ([string]::IsNullOrWhiteSpace($watchDir)) { $false } else { Test-Path $watchDir })",
+    "OutDir: $(Show-ConfigValue $outDir)",
+    "OutDirExists: $(if ([string]::IsNullOrWhiteSpace($outDir)) { $false } else { Test-Path $outDir })",
+    "TmpDir: $(Show-ConfigValue $tmpDir)",
+    "TmpDirExists: $(if ([string]::IsNullOrWhiteSpace($tmpDir)) { $false } else { Test-Path $tmpDir })",
+    "ZipExe: $(Show-ConfigValue $zipExe)",
+    "ZipExeExists: $(if ([string]::IsNullOrWhiteSpace($zipExe)) { $false } else { Test-Path $zipExe })",
+    "ZipPasswordEnv: $(Show-ConfigValue $zipPasswordEnv)",
+    "ZipPasswordEnvPresent: $(if ([string]::IsNullOrWhiteSpace($zipPasswordEnv)) { $false } else { [bool][Environment]::GetEnvironmentVariable($zipPasswordEnv) })",
+    "RcloneExe: $(Show-ConfigValue $rcloneExe)",
+    "RcloneExeExists: $(if ([string]::IsNullOrWhiteSpace($rcloneExe)) { $false } else { Test-Path $rcloneExe })",
+    "RcloneRemote: $(Show-ConfigValue $rcloneRemote)",
+    "RcloneRemoteLooksPlaceholder: $(Test-PlaceholderValue $rcloneRemote)",
+    "EmailEnabled: $emailEnabled",
+    "EmailFrom: $(Mask-EmailAddress $emailFrom)",
+    "EmailTo: $(Mask-EmailAddress $emailTo)",
+    "EmailTargetLooksPlaceholder: $([bool]((Test-PlaceholderValue $emailFrom) -or (Test-PlaceholderValue $emailTo)))",
+    "SmtpPasswordEnv: $(Show-ConfigValue $smtpPasswordEnv)",
+    "SmtpPasswordEnvPresent: $(if ([string]::IsNullOrWhiteSpace($smtpPasswordEnv)) { $false } else { [bool][Environment]::GetEnvironmentVariable($smtpPasswordEnv) })",
+    "RealRunEffects: $($realRunEffects -join '; ')"
   )
 }
 $results += Invoke-CapturedStep -Name "Static headless-default guard" -Command 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1' -ScriptBlock {
@@ -214,7 +328,7 @@ $status = if (-not $allStepsPassed) {
 
 $nextAction = switch ($status) {
   'FAIL' { 'Fix the failing command(s), then rerun this capture script on Windows.' }
-  'PENDING_REAL_RUN' { 'Run this script again with -IncludeRealRun on a real Windows machine after reviewing config safety.' }
+  'PENDING_REAL_RUN' { 'Run this script again with -IncludeRealRun -ConfirmSafeRealRun on a real Windows machine after reviewing config safety.' }
   'PENDING_DEFAULT_OBSERVATION' { 'Repeat the default real run and rerun this script with -ObservedDefaultRunHeadless after confirming no modal dialog appeared.' }
   'PENDING_SCHEDULED_OBSERVATION' { 'Trigger the scheduled/manual default path on Windows and rerun this script with -ObservedScheduledTaskHeadless (and optionally -ScheduledTaskName) once confirmed headless.' }
   default { 'Headless-default release gate evidence is complete for this capture.' }

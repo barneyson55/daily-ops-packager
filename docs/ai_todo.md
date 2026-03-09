@@ -3,20 +3,21 @@
 Autopilot executes the first unchecked **top-level** item (`- [ ]`).
 Keep this file short, current, and evidence-driven.
 
-Last reprioritized: 2026-03-09 12:16 UTC.
+Last reprioritized: 2026-03-09 17:49 UTC.
 
 ## Current evidence snapshot
 
 - Repo status in this maintenance pass: `git status --short --branch` returned `## master...origin/master` with no local changes before this doc refresh.
-- Docs reviewed this pass: `README.md`, `USER_TODO.md`, `docs/ARCHITECTURE.md`, `docs/CONFIG.md`, `docs/TROUBLESHOOTING.md`, `docs/deep_research_auto.md`, `docs/ai_todo.md`.
-- `README.md` and `USER_TODO.md` now consistently present the product as **headless by default** for scheduled/CLI runs, with `--interactive` reserved for manual desktop use.
+- Docs reviewed this pass: `README.md`, `STATUS.md`, `TODO_SHORT_TERM.md`, `TODO_LONG_TERM.md`, `USER_TODO.md`, `docs/ARCHITECTURE.md`, `docs/CONFIG.md`, `docs/TROUBLESHOOTING.md`, `docs/headless_default_release_gate.md`, `docs/deep_research_auto.md`, `docs/ai_todo.md`.
+- `docs/status.md` and `docs/critical_todo.md` are still absent; the nearest status surface is root `STATUS.md`, whose `Last triage: 2026-02-15 (UTC)` and first task (`installer packaging + prerequisite checks`) now lag behind the current release blockers.
+- `README.md` and `USER_TODO.md` consistently present the product as **headless by default** for scheduled/CLI runs, with `--interactive` reserved for manual desktop use.
 - Source still confirms that dialogs are only shown behind the interactive path: `src/OneClickBackup.ahk` routes user-facing dialogs through `MaybeShowDialog(...)`, which calls `MsgBox` only when `--interactive` is enabled.
-- A dedicated Windows evidence capture entrypoint exists at `scripts/CaptureHeadlessEvidence.ps1`, and durable proof is staged at `docs/headless_default_release_gate.md`; the capture flow records runtime context, headless guard output, smoke-test output, summary tail, current-day backup-log tail, and optional `schtasks` evidence.
+- A dedicated Windows evidence capture entrypoint exists at `scripts/CaptureHeadlessEvidence.ps1`, and durable proof is staged at `docs/headless_default_release_gate.md`; the capture flow records runtime context, a resolved config safety review, headless guard output, smoke-test output, summary tail, current-day backup-log tail, and optional `schtasks` evidence.
 - The headless-default gate is still **open** because this WSL/OpenClaw session cannot launch native Windows `powershell.exe`, `cmd.exe`, or `AutoHotkey64.exe`; attempts fail before process start with `WSL ... UtilBindVsockAnyPort:307: socket failed 1`.
 - Security blocker still stands: `src/Lib/Notify.ahk` passes the SMTP password into `scripts/SendMail.ps1` via `-Password ...`, so the secret is still crossing the process boundary in argv form.
 - Reliability blocker still stands: `src/Lib/Shell.ahk` still waits for the child process to finish before draining `StdOut` / `StdErr`, which is a weak unattended-runner pattern for verbose tools like `7z`, `rclone`, and PowerShell mail helpers.
 - `scripts/CheckPrereqs.ps1` still checks binary/env presence, but the current docs evidence does not show validation of watch-dir existence, temp/output writability, archive-name sanity, or remote reachability.
-- `docs/status.md`, `docs/critical_todo.md`, and a visible `.github/workflows` regression surface are still absent.
+- A visible regression surface is still thin: `scripts/SmokeTest.ps1` exists, but `.github/workflows` is absent and there is still no deterministic documented failure-path coverage for upload/mail/zip regressions.
 
 ## Prioritized open items
 
@@ -30,7 +31,7 @@ Last reprioritized: 2026-03-09 12:16 UTC.
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
     - `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"`
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
     - Manual/scheduled observation confirms no blocking `MsgBox` on the default path.
   - **Current blocker:** this repo is mounted in WSL, but this automation session cannot cross the Windows process boundary. Required human action: open **Windows PowerShell** in `C:\CORE\daily-ops-packager` and run the capture command above (optionally append `-ScheduledTaskName "OneClickBackupDaily"` if that task exists).
 
@@ -78,19 +79,19 @@ Last reprioritized: 2026-03-09 12:16 UTC.
     - `powershell -NoProfile -Command "Test-Path .github\workflows"`
     - README and/or workflow docs describe a stable regression command.
 
-- [ ] **P2 — Add explicit release-state docs once runtime blockers are narrowed**
-  - **Why now:** this maintenance pass was explicitly asked to review `docs/status.md` and `docs/critical_todo.md`, and the result is that both are still missing. That makes current release state and blocker ownership too implicit.
+- [ ] **P2 — Canonicalize release-state docs and retire stale planning drift**
+  - **Why now:** the active blocker picture currently lives across root `STATUS.md`, `TODO_SHORT_TERM.md`, `TODO_LONG_TERM.md`, `USER_TODO.md`, `docs/headless_default_release_gate.md`, and this queue. That fragmentation is already creating roadmap drift: root `STATUS.md` still points to installer packaging while the real release gates are headless proof, secret handling, runner safety, prereq coverage, and regression confidence.
   - **Deliverables:**
     - Add `docs/status.md` for current repo state, recent evidence, and known limits.
     - Add `docs/critical_todo.md` for true release/blocker items only.
-    - Seed both from live evidence, not from wish-list planning.
+    - Reconcile root `STATUS.md` / TODO surfaces so installer packaging stays explicitly downstream of runtime hardening.
   - **Verification:**
     - `powershell -NoProfile -Command "Test-Path docs\status.md; Test-Path docs\critical_todo.md"`
-    - `powershell -NoProfile -Command "Select-String -Path docs\status.md,docs\critical_todo.md -Pattern 'headless|secret|runner|prereq|regression'"`
+    - `powershell -NoProfile -Command "Select-String -Path STATUS.md,docs\status.md,docs\critical_todo.md -Pattern 'headless|secret|runner|prereq|regression|installer'"`
 
 ## Notes
 
 - Historical setup micro-guidance belongs in `USER_TODO.md`; this file should stay focused on the next engineering deltas.
-- The queue remains intentionally short: proof of unattended behavior first, then secret handling, then runner reliability, then readiness/regression, and only then explicit status docs.
-- `docs/status.md` and `docs/critical_todo.md` were reviewed by absence in this pass; they were **not** created here because this maintenance scope is limited to `docs/ai_todo.md` (and optional `docs/deep_research_auto.md`).
-- Deep-research rationale in `docs/deep_research_auto.md` still broadly matches this ordering.
+- The queue remains intentionally short: proof of unattended behavior first, then secret handling, then runner reliability, then readiness/regression, then planning-surface cleanup.
+- `docs/status.md` and `docs/critical_todo.md` were reviewed by absence in this pass; they were **not** created here because this maintenance scope is limited to `docs/ai_todo.md` and `docs/deep_research_auto.md`.
+- Root `STATUS.md` and TODO files were reviewed as evidence sources only; their stale installer-first framing should not outrank the active release gates above.

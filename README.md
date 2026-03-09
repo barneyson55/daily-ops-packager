@@ -32,8 +32,8 @@ Small Windows automation that collects today's files from a watch directory, cop
 - Durable Windows evidence capture:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -ScheduledTaskName "OneClickBackupDaily"`
-  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
-  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ScheduledTaskName "OneClickBackupDaily"`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ScheduledTaskName "OneClickBackupDaily"`
 - Dry-run:
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run`
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run --interactive`
@@ -50,6 +50,8 @@ Small Windows automation that collects today's files from a watch directory, cop
 ## Evidence notes
 - `scripts\CaptureHeadlessEvidence.ps1` writes the durable gate artifact to `docs\headless_default_release_gate.md`.
 - The capture script now fails early with an exact native-Windows instruction when launched from a non-Windows host.
+- The capture script also refuses `-IncludeRealRun` unless `-ConfirmSafeRealRun` is passed after reviewing `config\app.ini` safety.
+- Each capture now includes a resolved config safety review (watch/output/tmp paths, upload/email targets, env-var readiness) before any optional real run.
 - Each capture also writes a support transcript to `logs\headless_release_gate_YYYYMMDDTHHMMSS.log` by default (override with `-Transcript`).
 - The generated evidence now includes runtime context plus the latest `logs\backup_YYYYMMDD.log` tail alongside the headless guard, smoke-test, summary, and optional scheduler proof.
 
