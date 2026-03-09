@@ -15,6 +15,7 @@ Small Windows automation that collects today's files from a watch directory, cop
    - static check for the headless default: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
    - or use the smoke test script: `scripts\SmokeTest.ps1 -Config config\app.ini`
    - durable Windows evidence capture (safe default, no real run): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`
+   - durable Windows evidence capture with scheduler proof: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -ScheduledTaskName "OneClickBackupDaily"`
 5) Run a real backup:
    - headless/default: `src\OneClickBackup.ahk --config config\app.ini`
    - manual desktop feedback: `src\OneClickBackup.ahk --config config\app.ini --interactive`
@@ -30,7 +31,9 @@ Small Windows automation that collects today's files from a watch directory, cop
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
 - Durable Windows evidence capture:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -ScheduledTaskName "OneClickBackupDaily"`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ScheduledTaskName "OneClickBackupDaily"`
 - Dry-run:
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run`
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run --interactive`

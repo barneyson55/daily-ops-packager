@@ -9,7 +9,7 @@ Last reprioritized: 2026-03-09 05:49 UTC.
 
 - Docs reviewed this pass: `README.md`, `USER_TODO.md`, `docs/ARCHITECTURE.md`, `docs/CONFIG.md`, `docs/TROUBLESHOOTING.md`, `docs/ai_todo.md`, `docs/deep_research_auto.md`.
 - `README.md` and `USER_TODO.md` now present the product as **headless by default** for scheduled/CLI runs, with `--interactive` reserved for manual desktop use.
-- A dedicated Windows evidence capture entrypoint now exists at `scripts/CaptureHeadlessEvidence.ps1`, and durable proof is staged at `docs/headless_default_release_gate.md`; the gate still remains open until a real Windows run populates that evidence with PASS-grade output.
+- A dedicated Windows evidence capture entrypoint now exists at `scripts/CaptureHeadlessEvidence.ps1`, and durable proof is staged at `docs/headless_default_release_gate.md`; the capture flow can now also include `schtasks /Query` output via `-ScheduledTaskName`, but the gate still remains open until a real Windows run populates that evidence with PASS-grade output.
 - `docs/status.md` and `docs/critical_todo.md` are still absent, so release state and blocker tracking remain implicit.
 - Highest engineering-risk findings still standing from the current evidence set:
   - headless-by-default behavior appears landed, but there is still no captured Windows smoke evidence proving scheduled/background runs are clean end to end;

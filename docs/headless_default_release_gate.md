@@ -17,13 +17,15 @@
 - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
 - `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"`
 - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ScheduledTaskName "OneClickBackupDaily"`
 
 ## Current repo state
 
 - Static headless guard exists: `scripts\CheckHeadlessDefault.ps1`
 - Durable evidence capture entrypoint exists: `scripts\CaptureHeadlessEvidence.ps1`
+- The evidence capture script can now also record `schtasks /Query` output when `-ScheduledTaskName` is supplied, so scheduled-task proof can live in the same durable markdown artifact.
 - Checked-in Windows proof is still missing; this gate is not closed yet.
 
 ## Next action
 
-Run `scripts\CaptureHeadlessEvidence.ps1` on Windows after reviewing the target config and only use `-IncludeRealRun` when a real upload/email-capable run is safe.
+Run `scripts\CaptureHeadlessEvidence.ps1` on Windows after reviewing the target config and only use `-IncludeRealRun` when a real upload/email-capable run is safe. If a scheduled task already exists, also pass `-ScheduledTaskName "OneClickBackupDaily"` (or the real task name) so the evidence file captures the scheduler status in the same pass.

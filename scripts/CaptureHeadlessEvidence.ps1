@@ -2,6 +2,7 @@ param(
   [string]$Config = "config\app.ini",
   [string]$Output = "docs\headless_default_release_gate.md",
   [string]$AhkExe = "",
+  [string]$ScheduledTaskName = "",
   [switch]$IncludeRealRun,
   [switch]$ObservedDefaultRunHeadless,
   [switch]$ObservedScheduledTaskHeadless
@@ -120,6 +121,14 @@ if ($IncludeRealRun) {
   $results += $realRunResult
 }
 
+$scheduledTaskResult = $null
+if ($ScheduledTaskName) {
+  $scheduledTaskResult = Invoke-CapturedStep -Name "Scheduled task status" -Command ("schtasks /Query /TN \"{0}\" /V /FO LIST" -f $ScheduledTaskName) -ScriptBlock {
+    & schtasks /Query /TN $ScheduledTaskName /V /FO LIST
+  }
+  $results += $scheduledTaskResult
+}
+
 $summaryTail = Invoke-CapturedStep -Name "Summary tail" -Command 'powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"' -ScriptBlock {
   if (-not (Test-Path $summaryPath)) {
     throw "Summary file not found: $summaryPath"
@@ -131,6 +140,7 @@ $results += $summaryTail
 $failedSteps = @($results | Where-Object { $_.ExitCode -ne 0 })
 $allStepsPassed = ($failedSteps.Count -eq 0)
 $realRunCaptured = [bool]$IncludeRealRun
+$scheduledTaskEvidenceCaptured = [bool]$ScheduledTaskName
 $defaultObserved = [bool]$ObservedDefaultRunHeadless
 $scheduledObserved = [bool]$ObservedScheduledTaskHeadless
 
@@ -150,7 +160,7 @@ $nextAction = switch ($status) {
   'FAIL' { 'Fix the failing command(s), then rerun this capture script on Windows.' }
   'PENDING_REAL_RUN' { 'Run this script again with -IncludeRealRun on a real Windows machine after reviewing config safety.' }
   'PENDING_DEFAULT_OBSERVATION' { 'Repeat the default real run and rerun this script with -ObservedDefaultRunHeadless after confirming no modal dialog appeared.' }
-  'PENDING_SCHEDULED_OBSERVATION' { 'Trigger the scheduled/manual default path on Windows and rerun this script with -ObservedScheduledTaskHeadless once confirmed headless.' }
+  'PENDING_SCHEDULED_OBSERVATION' { 'Trigger the scheduled/manual default path on Windows and rerun this script with -ObservedScheduledTaskHeadless (and optionally -ScheduledTaskName) once confirmed headless.' }
   default { 'Headless-default release gate evidence is complete for this capture.' }
 }
 
@@ -166,6 +176,7 @@ $lines += ('- Generated: {0}' -f ((Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')
 $lines += ('- Status: **{0}**' -f $status)
 $lines += ('- Config: `{0}`' -f $Config)
 $lines += ('- Real run captured: **{0}**' -f ($(if ($realRunCaptured) { 'yes' } else { 'no' })))
+$lines += ('- Scheduled task query captured: **{0}**' -f ($(if ($scheduledTaskEvidenceCaptured) { 'yes' } else { 'no' })))
 $lines += ('- Manual default-run observation recorded: **{0}**' -f ($(if ($defaultObserved) { 'yes' } else { 'no' })))
 $lines += ('- Manual scheduled-task observation recorded: **{0}**' -f ($(if ($scheduledObserved) { 'yes' } else { 'no' })))
 $lines += ''
