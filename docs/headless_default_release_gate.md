@@ -23,7 +23,7 @@
 
 - Static headless guard exists: `scripts\CheckHeadlessDefault.ps1`
 - Durable evidence capture entrypoint exists: `scripts\CaptureHeadlessEvidence.ps1`
-- The evidence capture script now fails early with an exact native-Windows instruction when launched from a non-Windows host.
+- The evidence capture script now fails early with an exact native-Windows instruction when launched from a non-Windows host, including copy/paste-ready safe-first and PASS-grade rerun commands.
 - The evidence capture script also refuses `-IncludeRealRun` unless `-ConfirmSafeRealRun` is supplied after reviewing `config\app.ini` safety.
 - Each capture now also records a resolved config safety review (watch/output/tmp paths, remote/email targets, and env-var readiness) before the optional real run.
 - Each capture now also writes a support transcript to `logs\headless_release_gate_YYYYMMDDTHHMMSS.log` by default.

@@ -130,6 +130,7 @@
 - [ ] 12) Capture headless-default release evidence (native Windows only)
   - [x] Added native-host guidance: run this from **Windows PowerShell** in `C:\CORE\daily-ops-packager`, not from WSL, because the final proof requires launching native `powershell.exe` / `AutoHotkey64.exe`.
   - [x] Added explicit non-Windows blocker guidance: `scripts\CaptureHeadlessEvidence.ps1` now fails early with the exact instruction to reopen native Windows PowerShell instead of continuing with a vague WSL boundary error.
+  - [x] Added copy/paste-ready WSL handoff guidance: the same non-Windows failure now prints the safe first-pass capture command plus the PASS-grade real-run and optional scheduler-proof commands.
   - [x] Added safe first-pass capture guidance: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini` (expected interim result: `Status: **PENDING_REAL_RUN**`).
   - [x] Added support-transcript guidance: each capture now also writes `logs\headless_release_gate_YYYYMMDDTHHMMSS.log` by default (override with `-Transcript` if you want a fixed path).
   - [x] Added pre-real-run config safety review: the capture artifact now records resolved watch/output/tmp paths, upload/email targets, and env-var readiness before any optional real run.
