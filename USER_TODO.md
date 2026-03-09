@@ -129,7 +129,9 @@
 
 - [ ] 12) Capture headless-default release evidence (native Windows only)
   - [x] Added native-host guidance: run this from **Windows PowerShell** in `C:\CORE\daily-ops-packager`, not from WSL, because the final proof requires launching native `powershell.exe` / `AutoHotkey64.exe`.
+  - [x] Added explicit non-Windows blocker guidance: `scripts\CaptureHeadlessEvidence.ps1` now fails early with the exact instruction to reopen native Windows PowerShell instead of continuing with a vague WSL boundary error.
   - [x] Added safe first-pass capture guidance: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini` (expected interim result: `Status: **PENDING_REAL_RUN**`).
+  - [x] Added support-transcript guidance: each capture now also writes `logs\headless_release_gate_YYYYMMDDTHHMMSS.log` by default (override with `-Transcript` if you want a fixed path).
   - [x] Added PASS-grade capture guidance: after confirming the configured upload/email target is safe for a real run, execute `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`.
   - [x] Added scheduler-proof variant guidance: if `OneClickBackupDaily` exists, rerun with `-ScheduledTaskName "OneClickBackupDaily"` so the same artifact captures `schtasks /Query` evidence too.
   - [x] Added release-gate verification guidance: open `docs\headless_default_release_gate.md` and confirm it shows `Status: **PASS**` before treating the headless-default release claim as closed.

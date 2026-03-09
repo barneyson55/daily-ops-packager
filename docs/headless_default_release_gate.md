@@ -23,6 +23,8 @@
 
 - Static headless guard exists: `scripts\CheckHeadlessDefault.ps1`
 - Durable evidence capture entrypoint exists: `scripts\CaptureHeadlessEvidence.ps1`
+- The evidence capture script now fails early with an exact native-Windows instruction when launched from a non-Windows host.
+- Each capture now also writes a support transcript to `logs\headless_release_gate_YYYYMMDDTHHMMSS.log` by default.
 - The evidence capture script can now also record `schtasks /Query` output when `-ScheduledTaskName` is supplied, so scheduled-task proof can live in the same durable markdown artifact.
 - Checked-in Windows proof is still missing; this gate is not closed yet.
 

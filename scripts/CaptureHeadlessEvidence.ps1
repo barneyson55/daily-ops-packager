@@ -140,6 +140,7 @@ $results += Invoke-CapturedStep -Name "Runtime context" -Command 'built-in captu
     "PowerShellVersion: $($PSVersionTable.PSVersion.ToString())",
     "OSVersion: $([System.Environment]::OSVersion.VersionString)",
     "ConfigPath: $configPath",
+    "TranscriptPath: $transcriptPath",
     "AhkExe: $(if ($resolvedAhkExe) { $resolvedAhkExe } else { '(not resolved yet)' })",
     "SummaryPath: $summaryPath",
     "BackupLogPath: $backupLogPath"
@@ -156,6 +157,9 @@ $realRunResult = $null
 if ($IncludeRealRun) {
   if (-not $resolvedAhkExe) {
     Write-Error 'AutoHotkey not found in PATH. Pass -AhkExe C:\Path\To\AutoHotkey64.exe'
+    if ($transcriptStarted) {
+      Stop-Transcript | Out-Null
+    }
     exit 1
   }
 
@@ -227,6 +231,7 @@ $lines += ''
 $lines += ('- Generated: {0}' -f ((Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')))
 $lines += ('- Status: **{0}**' -f $status)
 $lines += ('- Config: `{0}`' -f $Config)
+$lines += ('- Transcript: `{0}`' -f $transcriptPath)
 $lines += ('- Real run captured: **{0}**' -f ($(if ($realRunCaptured) { 'yes' } else { 'no' })))
 $lines += ('- Scheduled task query captured: **{0}**' -f ($(if ($scheduledTaskEvidenceCaptured) { 'yes' } else { 'no' })))
 $lines += ('- Manual default-run observation recorded: **{0}**' -f ($(if ($defaultObserved) { 'yes' } else { 'no' })))
@@ -263,4 +268,9 @@ $markdown = ($lines -join "`n").TrimEnd() + "`n"
 Set-Content -Path $outputPath -Value $markdown -Encoding UTF8
 
 Write-Host "Wrote headless evidence doc: $outputPath"
+Write-Host "Transcript: $transcriptPath"
 Write-Host "Status: $status"
+
+if ($transcriptStarted) {
+  Stop-Transcript | Out-Null
+}

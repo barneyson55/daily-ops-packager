@@ -14,7 +14,7 @@ Small Windows automation that collects today's files from a watch directory, cop
    - manual desktop feedback: `src\OneClickBackup.ahk --config config\app.ini --dry-run --interactive`
    - static check for the headless default: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
    - or use the smoke test script: `scripts\SmokeTest.ps1 -Config config\app.ini`
-   - durable Windows evidence capture (safe default, no real run): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`
+   - durable Windows evidence capture (safe default, no real run; run this from native **Windows PowerShell**, not WSL): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`
    - durable Windows evidence capture with scheduler proof: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -ScheduledTaskName "OneClickBackupDaily"`
 5) Run a real backup:
    - headless/default: `src\OneClickBackup.ahk --config config\app.ini`
@@ -49,6 +49,8 @@ Small Windows automation that collects today's files from a watch directory, cop
 
 ## Evidence notes
 - `scripts\CaptureHeadlessEvidence.ps1` writes the durable gate artifact to `docs\headless_default_release_gate.md`.
+- The capture script now fails early with an exact native-Windows instruction when launched from a non-Windows host.
+- Each capture also writes a support transcript to `logs\headless_release_gate_YYYYMMDDTHHMMSS.log` by default (override with `-Transcript`).
 - The generated evidence now includes runtime context plus the latest `logs\backup_YYYYMMDD.log` tail alongside the headless guard, smoke-test, summary, and optional scheduler proof.
 
 ## Notes
