@@ -14,6 +14,7 @@ Small Windows automation that collects today's files from a watch directory, cop
    - manual desktop feedback: `src\OneClickBackup.ahk --config config\app.ini --dry-run --interactive`
    - static check for the headless default: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
    - or use the smoke test script: `scripts\SmokeTest.ps1 -Config config\app.ini`
+   - durable Windows evidence capture (safe default, no real run): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`
 5) Run a real backup:
    - headless/default: `src\OneClickBackup.ahk --config config\app.ini`
    - manual desktop feedback: `src\OneClickBackup.ahk --config config\app.ini --interactive`
@@ -27,6 +28,9 @@ Small Windows automation that collects today's files from a watch directory, cop
 ## Example commands
 - Static headless-default guard:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
+- Durable Windows evidence capture:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
 - Dry-run:
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run`
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run --interactive`
@@ -38,6 +42,7 @@ Small Windows automation that collects today's files from a watch directory, cop
 - `docs\ARCHITECTURE.md`
 - `docs\CONFIG.md`
 - `docs\TROUBLESHOOTING.md`
+- `docs\headless_default_release_gate.md`
 
 ## Notes
 - No secrets are stored in the repo; use environment variables.

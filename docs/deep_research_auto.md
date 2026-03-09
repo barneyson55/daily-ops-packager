@@ -1,7 +1,9 @@
 # Deep Research — daily-ops-packager
 
-Updated: 2026-03-09 03:18 UTC
+Updated: 2026-03-09 05:49 UTC
 Scope of this pass: local evidence first, minimal external validation second. No code changes in this maintenance pass.
+
+Maintenance note (05:49 UTC): `docs/ai_todo.md` was refreshed again after reviewing the current docs surface. The main correction was to treat headless-by-default as a **release-evidence gate** rather than as an unlanded feature, because `README.md` and `USER_TODO.md` now already document the headless default.
 
 ## Sources reviewed
 
@@ -139,12 +141,12 @@ Why this matters here:
 ## Recommended roadmap shape
 
 ### Now / highest leverage
-1. Make scheduled runs headless by default.
+1. Close the headless-default release gate with real Windows smoke evidence.
 2. Remove command-line secret exposure.
-3. Strengthen prereq validation into operational-readiness validation.
+3. Replace `Shell.Exec` with a safer runner and richer failure diagnostics.
 
 ### Next
-4. Replace `Shell.Exec` with a safer runner and richer failure diagnostics.
+4. Strengthen prereq validation into operational-readiness validation.
 5. Add deterministic Windows smoke coverage and CI entrypoints.
 
 ### After runtime reliability improves
@@ -166,4 +168,4 @@ Why this matters here:
 
 ## Resulting prioritization change
 
-The refreshed `docs/ai_todo.md` now prioritizes unattended reliability and runtime safety over generic CI/release-process work. That is the biggest correction from the previous backlog shape.
+The refreshed `docs/ai_todo.md` now prioritizes unattended reliability and runtime safety over generic CI/release-process work. The biggest correction in the latest pass is that headless-by-default is no longer framed as missing implementation; it is framed as a release gate that still needs real Windows proof before closure.
