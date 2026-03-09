@@ -93,7 +93,9 @@
   - [x] Added verify step guidance: confirm latest line in `logs\summary_YYYYMMDD.csv` reports a dry-run status (for example, contains `dry-run`/`DRY_RUN` and no fatal error message).
   - [x] Added quick tail command guidance for dry-run verification: run `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"` right after dry-run to inspect the freshest status row.
   - [x] Added explicit dry-run exit-code check guidance: after `src\OneClickBackup.ahk --config config\app.ini --dry-run`, run `echo %ERRORLEVEL%` (or `$LASTEXITCODE` in PowerShell) and expect `0`.
+  - [x] Added manual-feedback guidance: append `--interactive` only for a desktop-run where you explicitly want result dialogs; keep scheduled/automation runs headless.
   - `src\OneClickBackup.ahk --config config\app.ini --dry-run`
+  - optional manual desktop variant: `src\OneClickBackup.ahk --config config\app.ini --dry-run --interactive`
   - or run both prereq check + dry-run in one step:
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
 
@@ -107,6 +109,7 @@
   - [x] Added verify step guidance: trigger once with `schtasks /Run /TN "OneClickBackupDaily"` then query `schtasks /Query /TN "OneClickBackupDaily" /V /FO LIST` and confirm `Last Run Result: 0x0`.
   - [x] Added schedule-time verification guidance: run `schtasks /Query /TN "OneClickBackupDaily" /V /FO LIST | findstr /I "Schedule Next Run Time"` and confirm the next run slot matches your intended daily window.
   - [x] Added direct CLI-create fallback guidance: `schtasks /Create /SC DAILY /TN "OneClickBackupDaily" /TR "\"C:\Path\To\AutoHotkey64.exe\" \"C:\Path\To\repo\src\OneClickBackup.ahk\" --config \"C:\Path\To\repo\config\app.ini\"" /ST 09:00 /F` when XML import is not preferred.
+  - [x] Added headless-schedule guidance: do **not** append `--interactive` to scheduled task arguments; reserve it for manual desktop runs only.
   - Create a daily task:
     - Program: `C:\Path\To\AutoHotkey64.exe`
     - Arguments: `C:\Path\To\repo\src\OneClickBackup.ahk --config C:\Path\To\repo\config\app.ini`

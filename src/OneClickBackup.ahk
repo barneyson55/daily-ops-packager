@@ -23,7 +23,7 @@ main() {
     configPath := Config.ResolvePath(Config.ExpandEnv(configPath), baseDir)
 
     Logger.Init(baseDir)
-    Logger.Info("Starting OneClickBackup. config=" configPath " dryRun=" opts.dryRun)
+    Logger.Info("Starting OneClickBackup. config=" configPath " dryRun=" opts.dryRun " interactive=" opts.interactive)
 
     cfg := Config.Load(configPath, baseDir)
 
@@ -39,7 +39,7 @@ main() {
       summary.message := "Dry-run"
       SafeWriteSummary(baseDir, summary)
       ConsoleWrite("Dry-run: " count " files would be archived.")
-      MsgBox "Dry-run: " count " files would be archived."
+      MaybeShowDialog(opts.interactive, "Dry-run: " count " files would be archived.")
       return
     }
 
@@ -49,7 +49,7 @@ main() {
       SafeWriteSummary(baseDir, summary)
       Logger.Warn("No files matched today. Nothing to do.")
       ConsoleWrite("No files matched today. Nothing to do.")
-      MsgBox "No files matched today. Nothing to do."
+      MaybeShowDialog(opts.interactive, "No files matched today. Nothing to do.")
       return
     }
 
@@ -88,7 +88,7 @@ main() {
     summary.message := "OK"
     SafeWriteSummary(baseDir, summary)
     ConsoleWrite("Backup complete: " archivePath)
-    MsgBox "Backup complete: " archivePath
+    MaybeShowDialog(opts.interactive, "Backup complete: " archivePath)
   } catch as err {
     Logger.Error(err.Message)
     if (IsObject(cfg) && cfg.HasOwnProp("email") && cfg.email.enabled) {
@@ -98,13 +98,13 @@ main() {
     summary.message := err.Message
     SafeWriteSummary(baseDir, summary)
     ConsoleWrite("Error: " err.Message)
-    MsgBox "Error: " err.Message
+    MaybeShowDialog(opts.interactive, "Error: " err.Message)
     ExitApp 1
   }
 }
 
 ParseArgs(args) {
-  opts := { configPath: "", dryRun: false }
+  opts := { configPath: "", dryRun: false, interactive: false }
   i := 1
   while (i <= args.Length) {
     arg := args[i]
@@ -120,8 +120,13 @@ ParseArgs(args) {
       i += 1
       continue
     }
+    if (arg = "--interactive") {
+      opts.interactive := true
+      i += 1
+      continue
+    }
     if (arg = "--help" || arg = "-h") {
-      ShowHelp()
+      ShowHelp(opts.interactive)
       ExitApp 0
     }
     throw Error("Unknown argument: " arg)
@@ -129,14 +134,16 @@ ParseArgs(args) {
   return opts
 }
 
-ShowHelp() {
+ShowHelp(interactive := false) {
   msg := "OneClickBackup usage:`n"
-  msg .= "  OneClickBackup.ahk --config config\\app.ini [--dry-run]`n"
+  msg .= "  OneClickBackup.ahk --config config\\app.ini [--dry-run] [--interactive]`n"
   msg .= "Options:`n"
   msg .= "  --config, -c   Path to INI config`n"
   msg .= "  --dry-run      Collect and log only`n"
+  msg .= "  --interactive  Show desktop dialogs for manual runs`n"
   msg .= "  --help, -h     Show help`n"
-  MsgBox msg
+  ConsoleWrite(msg)
+  MaybeShowDialog(interactive, msg)
 }
 
 ValidatePrereqs(cfg, dryRun := false) {
@@ -185,6 +192,11 @@ ValidatePrereqs(cfg, dryRun := false) {
 
 ConsoleWrite(text) {
   try FileAppend(text "`n", "*")
+}
+
+MaybeShowDialog(interactive, text) {
+  if (interactive)
+    MsgBox text
 }
 
 SafeWriteSummary(baseDir, summary) {
