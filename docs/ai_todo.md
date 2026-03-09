@@ -3,13 +3,14 @@
 Autopilot executes the first unchecked **top-level** item (`- [ ]`).
 Keep this file short, current, and evidence-driven.
 
-Last reprioritized: 2026-03-09 05:49 UTC.
+Last reprioritized: 2026-03-09 08:13 UTC.
 
 ## Current evidence snapshot
 
 - Docs reviewed this pass: `README.md`, `USER_TODO.md`, `docs/ARCHITECTURE.md`, `docs/CONFIG.md`, `docs/TROUBLESHOOTING.md`, `docs/ai_todo.md`, `docs/deep_research_auto.md`.
 - `README.md` and `USER_TODO.md` now present the product as **headless by default** for scheduled/CLI runs, with `--interactive` reserved for manual desktop use.
 - A dedicated Windows evidence capture entrypoint now exists at `scripts/CaptureHeadlessEvidence.ps1`, and durable proof is staged at `docs/headless_default_release_gate.md`; the capture flow can now also include `schtasks /Query` output via `-ScheduledTaskName`, but the gate still remains open until a real Windows run populates that evidence with PASS-grade output.
+- Exact blocker confirmed in this automation pass: the current OpenClaw/WSL session cannot launch Windows `powershell.exe`, `cmd.exe`, or `AutoHotkey64.exe`; each attempt fails before the target process starts with `WSL ... UtilBindVsockAnyPort:307: socket failed 1`, so the remaining proof step must be executed from a native Windows terminal in the repo.
 - `docs/status.md` and `docs/critical_todo.md` are still absent, so release state and blocker tracking remain implicit.
 - Highest engineering-risk findings still standing from the current evidence set:
   - headless-by-default behavior appears landed, but there is still no captured Windows smoke evidence proving scheduled/background runs are clean end to end;
@@ -29,7 +30,9 @@ Last reprioritized: 2026-03-09 05:49 UTC.
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
     - `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"`
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
     - Scheduled-task/manual check shows no blocking `MsgBox` behavior on the default path.
+  - **Current blocker:** this repo is mounted in WSL, but this automation session cannot cross the Windows process boundary to collect native proof. Required human action: open **Windows PowerShell** in `C:\CORE\daily-ops-packager` and run the capture command above (optionally append `-ScheduledTaskName "OneClickBackupDaily"` if that task exists).
 
 - [ ] **P0 — Remove command-line secret exposure from the email notification path**
   - **Why now:** runtime secret exposure is still the cleanest security/release blocker in the current architecture. Avoiding committed secrets is not enough if the SMTP password is still passed as a process argument.

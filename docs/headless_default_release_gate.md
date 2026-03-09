@@ -26,6 +26,19 @@
 - The evidence capture script can now also record `schtasks /Query` output when `-ScheduledTaskName` is supplied, so scheduled-task proof can live in the same durable markdown artifact.
 - Checked-in Windows proof is still missing; this gate is not closed yet.
 
-## Next action
+## Current blocker
 
-Run `scripts\CaptureHeadlessEvidence.ps1` on Windows after reviewing the target config and only use `-IncludeRealRun` when a real upload/email-capable run is safe. If a scheduled task already exists, also pass `-ScheduledTaskName "OneClickBackupDaily"` (or the real task name) so the evidence file captures the scheduler status in the same pass.
+- This repo is available through WSL at `/mnt/c/CORE/daily-ops-packager`, but the current OpenClaw automation session cannot launch native Windows binaries from here.
+- Confirmed failing binaries in this pass: `powershell.exe`, `cmd.exe`, `AutoHotkey64.exe`
+- Failure happens before the target process starts: `WSL ... UtilBindVsockAnyPort:307: socket failed 1`
+- Result: the remaining PASS-grade evidence must be captured from a **native Windows terminal**, not from this WSL/OpenClaw session.
+
+## Required human action
+
+1. Open **Windows PowerShell** (not WSL) in `C:\CORE\daily-ops-packager`.
+2. Review `config\app.ini` and only keep `-IncludeRealRun` if a real run is safe for the configured upload/email target.
+3. Run:
+   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
+4. If the scheduled task already exists, rerun with the scheduler proof included:
+   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ScheduledTaskName "OneClickBackupDaily"`
+5. Commit the updated `docs\headless_default_release_gate.md` once it shows `Status: **PASS**`.
