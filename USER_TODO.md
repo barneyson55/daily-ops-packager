@@ -19,6 +19,7 @@
   - [x] Added package-metadata preflight guidance: run `winget show --id AutoHotkey.AutoHotkey -e` to confirm expected publisher/version before install or upgrade.
   - [x] Added version-drift remediation guidance: if AutoHotkey is already installed but outdated, run `winget upgrade --id AutoHotkey.AutoHotkey -e --silent --accept-package-agreements --accept-source-agreements` then re-run version checks.
   - [x] Added install-log capture guidance: run `winget install --id AutoHotkey.AutoHotkey -e --silent --accept-package-agreements --accept-source-agreements --log "%TEMP%\winget-autohotkey-install.log"` to retain a support-ready installer trace.
+  - [x] Added duplicate-resolution guidance: run `powershell -NoProfile -Command "Get-Command AutoHotkey64.exe -All | Select-Object -ExpandProperty Source"` and ensure only the intended v2 binary is on PATH; if multiple paths resolve, remove stale aliases before continuing.
   - Download and install AutoHotkey v2.
 
 - [ ] 2) Install 7-Zip

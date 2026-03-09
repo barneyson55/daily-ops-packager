@@ -401,3 +401,9 @@ Minimal AI task scaffold for daily-ops-packager.
 - [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 3 by adding winget upgrade/version-drift remediation guidance for rclone.
 - [x] Updated `USER_TODO.md` checkboxes with completed guidance subtask under item 3.
 - [x] Relevant check run: `git diff --check` (pass).
+
+<!-- ASPM_SWEEP_2026-03-09T0228Z -->
+## ASPM Sweep 2026-03-09T02:28Z
+- [x] Open user todo handled (non-sensitive): advanced one concrete milestone on step 1 by adding duplicate AutoHotkey PATH-resolution guidance (`Get-Command AutoHotkey64.exe -All`).
+- [x] Updated `USER_TODO.md` with the new checked guidance subtask under item 1.
+- [x] Relevant check run: readback verification of `USER_TODO.md` and `docs/ai_todo.md` after edit.
