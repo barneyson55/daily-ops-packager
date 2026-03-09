@@ -28,6 +28,7 @@
 - Each capture now also records a resolved config safety review (watch/output/tmp paths, remote/email targets, and env-var readiness) before the optional real run.
 - Each capture now also writes a support transcript to `logs\headless_release_gate_YYYYMMDDTHHMMSS.log` by default.
 - The evidence capture script can now also record `schtasks /Query` output when `-ScheduledTaskName` is supplied, so scheduled-task proof can live in the same durable markdown artifact.
+- The same scheduler-aware capture now also audits the registered task action and fails if the task injects `--interactive`, stops targeting `OneClickBackup.ahk`, or drops the explicit config flag.
 - Checked-in Windows proof is still missing; this gate is not closed yet.
 
 ## Current blocker

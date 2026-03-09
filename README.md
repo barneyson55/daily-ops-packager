@@ -53,7 +53,8 @@ Small Windows automation that collects today's files from a watch directory, cop
 - The capture script also refuses `-IncludeRealRun` unless `-ConfirmSafeRealRun` is passed after reviewing `config\app.ini` safety.
 - Each capture now includes a resolved config safety review (watch/output/tmp paths, upload/email targets, env-var readiness) before any optional real run.
 - Each capture also writes a support transcript to `logs\headless_release_gate_YYYYMMDDTHHMMSS.log` by default (override with `-Transcript`).
-- The generated evidence now includes runtime context plus the latest `logs\backup_YYYYMMDD.log` tail alongside the headless guard, smoke-test, summary, and optional scheduler proof.
+- When `-ScheduledTaskName` is supplied, the same capture now audits the registered task action and fails if the task injects `--interactive`, stops targeting `OneClickBackup.ahk`, or drops the explicit config flag.
+- The generated evidence now includes runtime context plus the latest `logs\backup_YYYYMMDD.log` tail alongside the headless guard, smoke-test, summary, and optional scheduler proof/action audit.
 
 ## Notes
 - No secrets are stored in the repo; use environment variables.

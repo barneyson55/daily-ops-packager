@@ -144,6 +144,87 @@ function Test-PlaceholderValue([string]$Value) {
   return ($Value -match 'example\.com|example\\|^myremote:|sample|placeholder')
 }
 
+function Get-XmlNodeInnerText {
+  param(
+    [System.Xml.XmlNode]$Node,
+    [string]$XPath
+  )
+
+  $valueNode = $Node.SelectSingleNode($XPath)
+  if ($null -eq $valueNode -or [string]::IsNullOrWhiteSpace($valueNode.InnerText)) {
+    return ""
+  }
+
+  return $valueNode.InnerText.Trim()
+}
+
+function Get-ScheduledTaskActionAuditLines {
+  param(
+    [string]$TaskName,
+    [string]$RepoRoot
+  )
+
+  $xmlOutput = & schtasks /Query /TN $TaskName /XML ONE 2>&1 | ForEach-Object { $_.ToString() }
+  $xmlExitCode = $LASTEXITCODE
+  if ($xmlExitCode -ne 0) {
+    throw "schtasks /Query /XML failed with exit code $xmlExitCode"
+  }
+
+  [xml]$taskXml = ($xmlOutput -join "`n")
+  $execNode = $taskXml.SelectSingleNode('/*[local-name()="Task"]/*[local-name()="Actions"]/*[local-name()="Exec"]')
+  if ($null -eq $execNode) {
+    throw 'Task XML does not contain an Exec action.'
+  }
+
+  $command = Get-XmlNodeInnerText -Node $execNode -XPath './*[local-name()="Command"]'
+  $arguments = Get-XmlNodeInnerText -Node $execNode -XPath './*[local-name()="Arguments"]'
+  $workingDirectory = Get-XmlNodeInnerText -Node $execNode -XPath './*[local-name()="WorkingDirectory"]'
+
+  $usesInteractiveFlag = [bool]($arguments -match '(^|[\s"])--interactive($|[\s"])')
+  $targetsMainScript = [bool]($arguments -match 'OneClickBackup\.ahk')
+  $hasConfigFlag = [bool]($arguments -match '(^|[\s"])(--config|-c)($|[\s"])')
+  $commandLooksLikeAutoHotkey = [bool]($command -match '(?i)AutoHotkey(?:64)?\.exe$')
+  $workingDirectoryMatchesRepoRoot = if ([string]::IsNullOrWhiteSpace($workingDirectory)) {
+    $false
+  } else {
+    [string]::Equals(
+      [System.IO.Path]::GetFullPath($workingDirectory).TrimEnd('\'),
+      [System.IO.Path]::GetFullPath($RepoRoot).TrimEnd('\'),
+      [System.StringComparison]::OrdinalIgnoreCase
+    )
+  }
+
+  $warnings = @()
+  if (-not $workingDirectoryMatchesRepoRoot) {
+    $warnings += 'WorkingDirectory does not match repo root.'
+  }
+
+  if ($usesInteractiveFlag) {
+    throw 'Scheduled task arguments include --interactive; scheduled/default execution must stay headless.'
+  }
+  if (-not $targetsMainScript) {
+    throw 'Scheduled task arguments do not target OneClickBackup.ahk.'
+  }
+  if (-not $hasConfigFlag) {
+    throw 'Scheduled task arguments do not include --config/-c.'
+  }
+  if (-not $commandLooksLikeAutoHotkey) {
+    throw 'Scheduled task command does not look like an AutoHotkey executable.'
+  }
+
+  return @(
+    "Command: $(Show-ConfigValue $command)",
+    "Arguments: $(Show-ConfigValue $arguments)",
+    "WorkingDirectory: $(Show-ConfigValue $workingDirectory)",
+    "UsesInteractiveFlag: $usesInteractiveFlag",
+    "TargetsMainScript: $targetsMainScript",
+    "HasConfigFlag: $hasConfigFlag",
+    "CommandLooksLikeAutoHotkey: $commandLooksLikeAutoHotkey",
+    "WorkingDirectoryMatchesRepoRoot: $workingDirectoryMatchesRepoRoot",
+    "Warnings: $(if ($warnings.Count -gt 0) { $warnings -join '; ' } else { '(none)' })"
+  )
+}
+
 function Invoke-CapturedStep {
   param(
     [string]$Name,
@@ -297,11 +378,17 @@ if ($IncludeRealRun) {
 }
 
 $scheduledTaskResult = $null
+$scheduledTaskAuditResult = $null
 if ($ScheduledTaskName) {
   $scheduledTaskResult = Invoke-CapturedStep -Name "Scheduled task status" -Command ("schtasks /Query /TN \"{0}\" /V /FO LIST" -f $ScheduledTaskName) -ScriptBlock {
     & schtasks /Query /TN $ScheduledTaskName /V /FO LIST
   }
   $results += $scheduledTaskResult
+
+  $scheduledTaskAuditResult = Invoke-CapturedStep -Name "Scheduled task action audit" -Command ("schtasks /Query /TN \"{0}\" /XML ONE" -f $ScheduledTaskName) -ScriptBlock {
+    Get-ScheduledTaskActionAuditLines -TaskName $ScheduledTaskName -RepoRoot $base
+  }
+  $results += $scheduledTaskAuditResult
 }
 
 $summaryTail = Invoke-CapturedStep -Name "Summary tail" -Command 'powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"' -ScriptBlock {
