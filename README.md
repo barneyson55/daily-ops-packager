@@ -47,6 +47,10 @@ Small Windows automation that collects today's files from a watch directory, cop
 - `docs\TROUBLESHOOTING.md`
 - `docs\headless_default_release_gate.md`
 
+## Evidence notes
+- `scripts\CaptureHeadlessEvidence.ps1` writes the durable gate artifact to `docs\headless_default_release_gate.md`.
+- The generated evidence now includes runtime context plus the latest `logs\backup_YYYYMMDD.log` tail alongside the headless guard, smoke-test, summary, and optional scheduler proof.
+
 ## Notes
 - No secrets are stored in the repo; use environment variables.
 - Scheduled/CLI runs are headless by default; pass `--interactive` only for manual desktop runs that should show dialogs.

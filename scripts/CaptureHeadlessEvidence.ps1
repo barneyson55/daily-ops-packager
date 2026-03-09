@@ -15,6 +15,7 @@ $checkScript = Join-Path $PSScriptRoot "CheckHeadlessDefault.ps1"
 $smokeScript = Join-Path $PSScriptRoot "SmokeTest.ps1"
 $ahkScript = Join-Path $base "src\OneClickBackup.ahk"
 $summaryPath = Join-Path $base ("logs\summary_{0}.csv" -f (Get-Date -Format yyyyMMdd))
+$backupLogPath = Join-Path $base ("logs\backup_{0}.log" -f (Get-Date -Format yyyyMMdd))
 
 if (-not (Test-Path $configPath)) {
   Write-Error "Config not found: $configPath"
@@ -99,7 +100,22 @@ function Format-Section {
   ) -join "`n"
 }
 
+$resolvedAhkExe = Resolve-AhkExe $AhkExe
+
 $results = @()
+$results += Invoke-CapturedStep -Name "Runtime context" -Command 'built-in capture (computer/user/os/paths)' -ScriptBlock {
+  @(
+    "ComputerName: $env:COMPUTERNAME",
+    "UserName: $env:USERNAME",
+    "CurrentDirectory: $(Get-Location)",
+    "PowerShellVersion: $($PSVersionTable.PSVersion.ToString())",
+    "OSVersion: $([System.Environment]::OSVersion.VersionString)",
+    "ConfigPath: $configPath",
+    "AhkExe: $(if ($resolvedAhkExe) { $resolvedAhkExe } else { '(not resolved yet)' })",
+    "SummaryPath: $summaryPath",
+    "BackupLogPath: $backupLogPath"
+  )
+}
 $results += Invoke-CapturedStep -Name "Static headless-default guard" -Command 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1' -ScriptBlock {
   & powershell -NoProfile -ExecutionPolicy Bypass -File $checkScript
 }
@@ -109,7 +125,6 @@ $results += Invoke-CapturedStep -Name "Dry-run smoke test" -Command ("powershell
 
 $realRunResult = $null
 if ($IncludeRealRun) {
-  $resolvedAhkExe = Resolve-AhkExe $AhkExe
   if (-not $resolvedAhkExe) {
     Write-Error 'AutoHotkey not found in PATH. Pass -AhkExe C:\Path\To\AutoHotkey64.exe'
     exit 1
@@ -136,6 +151,14 @@ $summaryTail = Invoke-CapturedStep -Name "Summary tail" -Command 'powershell -No
   Get-Content $summaryPath -Tail 1
 }
 $results += $summaryTail
+
+$backupLogTail = Invoke-CapturedStep -Name "Backup log tail" -Command 'powershell -NoProfile -Command "Get-Content logs\backup_$(Get-Date -Format yyyyMMdd).log -Tail 20"' -ScriptBlock {
+  if (-not (Test-Path $backupLogPath)) {
+    throw "Backup log not found: $backupLogPath"
+  }
+  Get-Content $backupLogPath -Tail 20
+}
+$results += $backupLogTail
 
 $failedSteps = @($results | Where-Object { $_.ExitCode -ne 0 })
 $allStepsPassed = ($failedSteps.Count -eq 0)
