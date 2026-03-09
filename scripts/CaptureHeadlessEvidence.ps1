@@ -20,7 +20,20 @@ $summaryPath = Join-Path $base ("logs\summary_{0}.csv" -f (Get-Date -Format yyyy
 $backupLogPath = Join-Path $base ("logs\backup_{0}.log" -f (Get-Date -Format yyyyMMdd))
 
 if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
-  Write-Error ("This script must be run from native Windows PowerShell in C:\CORE\daily-ops-packager. Required action: open Windows PowerShell in the repo root and rerun `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`. Current platform: {0}" -f [System.Environment]::OSVersion.Platform)
+  $windowsRepoRoot = 'C:\CORE\daily-ops-packager'
+  $safeCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini'
+  $passCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless'
+  $scheduledCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ScheduledTaskName "OneClickBackupDaily"'
+  Write-Error ((@(
+    "This script must be run from native Windows PowerShell in $windowsRepoRoot.",
+    'Required human action:',
+    "1) Open Windows PowerShell in $windowsRepoRoot",
+    "2) Safe first pass: $safeCaptureCommand",
+    '3) Review config\app.ini and only continue if a real backup is safe for the configured upload/email target.',
+    "4) PASS-grade capture after direct observation: $passCaptureCommand",
+    "5) Optional scheduler evidence: $scheduledCaptureCommand",
+    ("Current platform: {0}" -f [System.Environment]::OSVersion.Platform)
+  ) -join "`n"))
   exit 2
 }
 
