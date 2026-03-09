@@ -23,6 +23,7 @@ Last reprioritized: 2026-03-09 03:18 UTC.
     - If manual desktop feedback is still wanted, gate it behind an explicit `--interactive` flag or config option.
     - Document the resulting headless vs interactive behavior in `README.md` and `USER_TODO.md`.
   - **Verification:**
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
     - `powershell -NoProfile -Command "Select-String -Path src\OneClickBackup.ahk -Pattern 'MsgBox|interactive'"`
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
     - `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"`
@@ -30,6 +31,7 @@ Last reprioritized: 2026-03-09 03:18 UTC.
     - Added `--interactive` CLI flag to `src/OneClickBackup.ahk` and switched default dry-run / no-files / success / failure paths to headless console+log behavior.
     - Reserved desktop dialogs for explicit manual runs only.
     - Updated `README.md` and `USER_TODO.md` so scheduled-task guidance stays headless by default.
+    - Added `scripts/CheckHeadlessDefault.ps1` as a deterministic static guard for the default non-interactive behavior.
     - Still needs Windows-side smoke verification before this item should be considered fully closed.
 
 - [ ] **P0 — Remove command-line secret exposure from the email notification path**

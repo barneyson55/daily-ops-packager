@@ -12,6 +12,7 @@ Small Windows automation that collects today's files from a watch directory, cop
 4) Run a dry-run first:
    - headless/default: `src\OneClickBackup.ahk --config config\app.ini --dry-run`
    - manual desktop feedback: `src\OneClickBackup.ahk --config config\app.ini --dry-run --interactive`
+   - static check for the headless default: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
    - or use the smoke test script: `scripts\SmokeTest.ps1 -Config config\app.ini`
 5) Run a real backup:
    - headless/default: `src\OneClickBackup.ahk --config config\app.ini`
@@ -24,6 +25,8 @@ Small Windows automation that collects today's files from a watch directory, cop
 - PowerShell (built-in on Windows)
 
 ## Example commands
+- Static headless-default guard:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
 - Dry-run:
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run`
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run --interactive`
