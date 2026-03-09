@@ -1,6 +1,7 @@
 param(
   [string]$Config = "config\app.ini",
   [string]$Output = "docs\headless_default_release_gate.md",
+  [string]$Transcript = "",
   [string]$AhkExe = "",
   [string]$ScheduledTaskName = "",
   [switch]$IncludeRealRun,
@@ -16,6 +17,21 @@ $smokeScript = Join-Path $PSScriptRoot "SmokeTest.ps1"
 $ahkScript = Join-Path $base "src\OneClickBackup.ahk"
 $summaryPath = Join-Path $base ("logs\summary_{0}.csv" -f (Get-Date -Format yyyyMMdd))
 $backupLogPath = Join-Path $base ("logs\backup_{0}.log" -f (Get-Date -Format yyyyMMdd))
+
+if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
+  Write-Error ("This script must be run from native Windows PowerShell in C:\CORE\daily-ops-packager. Required action: open Windows PowerShell in the repo root and rerun `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`. Current platform: {0}" -f [System.Environment]::OSVersion.Platform)
+  exit 2
+}
+
+$transcriptPath = if ($Transcript) {
+  if ([System.IO.Path]::IsPathRooted($Transcript)) {
+    $Transcript
+  } else {
+    Join-Path $base $Transcript
+  }
+} else {
+  Join-Path $base ("logs\headless_release_gate_{0}.log" -f (Get-Date -Format yyyyMMddTHHmmss))
+}
 
 if (-not (Test-Path $configPath)) {
   Write-Error "Config not found: $configPath"
@@ -98,6 +114,19 @@ function Format-Section {
     '```',
     ""
   ) -join "`n"
+}
+
+$transcriptDir = Split-Path -Parent $transcriptPath
+if ($transcriptDir -and -not (Test-Path $transcriptDir)) {
+  New-Item -ItemType Directory -Path $transcriptDir -Force | Out-Null
+}
+
+$transcriptStarted = $false
+try {
+  Start-Transcript -Path $transcriptPath -Force | Out-Null
+  $transcriptStarted = $true
+} catch {
+  Write-Warning ("Transcript capture could not be started: {0}" -f $_.Exception.Message)
 }
 
 $resolvedAhkExe = Resolve-AhkExe $AhkExe
