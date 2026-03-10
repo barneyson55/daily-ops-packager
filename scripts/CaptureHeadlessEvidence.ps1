@@ -4,6 +4,7 @@ param(
   [string]$Transcript = "",
   [string]$AhkExe = "",
   [string]$ScheduledTaskName = "",
+  [string]$ObservedBy = "",
   [switch]$IncludeRealRun,
   [switch]$ConfirmSafeRealRun,
   [switch]$ObservedDefaultRunHeadless,
@@ -22,8 +23,8 @@ $backupLogPath = Join-Path $base ("logs\backup_{0}.log" -f (Get-Date -Format yyy
 if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
   $windowsRepoRoot = 'C:\CORE\daily-ops-packager'
   $safeCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini'
-  $passCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless'
-  $scheduledCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ScheduledTaskName "OneClickBackupDaily"'
+  $passCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YOUR_NAME"'
+  $scheduledCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YOUR_NAME" -ScheduledTaskName "OneClickBackupDaily"'
   Write-Error ((@(
     "This script must be run from native Windows PowerShell in $windowsRepoRoot.",
     'Required human action:',
@@ -65,6 +66,10 @@ if (-not (Test-Path $ahkScript)) {
 }
 if ($IncludeRealRun -and -not $ConfirmSafeRealRun) {
   Write-Error 'Refusing to perform the real backup run without explicit acknowledgement. Review config\app.ini and rerun with -IncludeRealRun -ConfirmSafeRealRun only when the configured upload/email target is safe.'
+  exit 1
+}
+if (($ObservedDefaultRunHeadless -or $ObservedScheduledTaskHeadless) -and [string]::IsNullOrWhiteSpace($ObservedBy)) {
+  Write-Error 'Observation flags require -ObservedBy "name-or-handle" so the evidence artifact records who confirmed the headless behavior.'
   exit 1
 }
 
@@ -429,8 +434,8 @@ $status = if (-not $allStepsPassed) {
 $nextAction = switch ($status) {
   'FAIL' { 'Fix the failing command(s), then rerun this capture script on Windows.' }
   'PENDING_REAL_RUN' { 'Run this script again with -IncludeRealRun -ConfirmSafeRealRun on a real Windows machine after reviewing config safety.' }
-  'PENDING_DEFAULT_OBSERVATION' { 'Repeat the default real run and rerun this script with -ObservedDefaultRunHeadless after confirming no modal dialog appeared.' }
-  'PENDING_SCHEDULED_OBSERVATION' { 'Trigger the scheduled/manual default path on Windows and rerun this script with -ObservedScheduledTaskHeadless (and optionally -ScheduledTaskName) once confirmed headless.' }
+  'PENDING_DEFAULT_OBSERVATION' { 'Repeat the default real run and rerun this script with -ObservedDefaultRunHeadless -ObservedBy "YourName" after confirming no modal dialog appeared.' }
+  'PENDING_SCHEDULED_OBSERVATION' { 'Trigger the scheduled/manual default path on Windows and rerun this script with -ObservedScheduledTaskHeadless -ObservedBy "YourName" (and optionally -ScheduledTaskName) once confirmed headless.' }
   default { 'Headless-default release gate evidence is complete for this capture.' }
 }
 
@@ -446,6 +451,7 @@ $lines += ('- Generated: {0}' -f ((Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')
 $lines += ('- Status: **{0}**' -f $status)
 $lines += ('- Config: `{0}`' -f $Config)
 $lines += ('- Transcript: `{0}`' -f $transcriptPath)
+$lines += ('- Observed by: **{0}**' -f $(if ([string]::IsNullOrWhiteSpace($ObservedBy)) { '(not recorded)' } else { $ObservedBy }))
 $lines += ('- Real run captured: **{0}**' -f ($(if ($realRunCaptured) { 'yes' } else { 'no' })))
 $lines += ('- Scheduled task query captured: **{0}**' -f ($(if ($scheduledTaskEvidenceCaptured) { 'yes' } else { 'no' })))
 $lines += ('- Manual default-run observation recorded: **{0}**' -f ($(if ($defaultObserved) { 'yes' } else { 'no' })))
@@ -470,6 +476,7 @@ foreach ($result in $results) {
 }
 $lines += '## Human observation checklist'
 $lines += ''
+$lines += ('- Observer: {0}' -f $(if ([string]::IsNullOrWhiteSpace($ObservedBy)) { '(not recorded)' } else { $ObservedBy }))
 $lines += ('- [{0}] Default run stayed headless (no `MsgBox` / blocking dialog without `--interactive`).' -f ($(if ($defaultObserved) { 'x' } else { ' ' })))
 $lines += ('- [{0}] Scheduled/manual default path stayed headless (no `MsgBox` / blocking dialog without `--interactive`).' -f ($(if ($scheduledObserved) { 'x' } else { ' ' })))
 $lines += ''

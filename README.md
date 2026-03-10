@@ -32,8 +32,8 @@ Small Windows automation that collects today's files from a watch directory, cop
 - Durable Windows evidence capture:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -ScheduledTaskName "OneClickBackupDaily"`
-  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
-  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ScheduledTaskName "OneClickBackupDaily"`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YourName"`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YourName" -ScheduledTaskName "OneClickBackupDaily"`
 - Dry-run:
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run`
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run --interactive`
@@ -55,6 +55,7 @@ Small Windows automation that collects today's files from a watch directory, cop
 - Each capture also writes a support transcript to `logs\headless_release_gate_YYYYMMDDTHHMMSS.log` by default (override with `-Transcript`).
 - When `-ScheduledTaskName` is supplied, the same capture now audits the registered task action and fails if the task injects `--interactive`, stops targeting `OneClickBackup.ahk`, or drops the explicit config flag.
 - The generated evidence now includes runtime context plus the latest `logs\backup_YYYYMMDD.log` tail alongside the headless guard, smoke-test, summary, and optional scheduler proof/action audit.
+- PASS-grade observation flags now require `-ObservedBy "YourName"` so the artifact records who directly confirmed the headless behavior.
 
 ## Notes
 - No secrets are stored in the repo; use environment variables.

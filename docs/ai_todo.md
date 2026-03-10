@@ -32,7 +32,7 @@ Last reprioritized: 2026-03-09 17:49 UTC.
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
     - `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"`
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YourName"`
     - Manual/scheduled observation confirms no blocking `MsgBox` on the default path.
   - **Current blocker:** this repo is mounted in WSL, but this automation session cannot cross the Windows process boundary. Required human action: open **Windows PowerShell** in `C:\CORE\daily-ops-packager` and run the capture command above (optionally append `-ScheduledTaskName "OneClickBackupDaily"` if that task exists).
 

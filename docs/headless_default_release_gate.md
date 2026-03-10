@@ -16,8 +16,8 @@
 - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
 - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
 - `powershell -NoProfile -Command "Get-Content logs\summary_$(Get-Date -Format yyyyMMdd).csv -Tail 1"`
-- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
-- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ScheduledTaskName "OneClickBackupDaily"`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YourName"`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YourName" -ScheduledTaskName "OneClickBackupDaily"`
 
 ## Current repo state
 
@@ -29,6 +29,7 @@
 - Each capture now also writes a support transcript to `logs\headless_release_gate_YYYYMMDDTHHMMSS.log` by default.
 - The evidence capture script can now also record `schtasks /Query` output when `-ScheduledTaskName` is supplied, so scheduled-task proof can live in the same durable markdown artifact.
 - The same scheduler-aware capture now also audits the registered task action and fails if the task injects `--interactive`, stops targeting `OneClickBackup.ahk`, or drops the explicit config flag.
+- PASS-grade observation flags now require `-ObservedBy "YourName"` so the resulting artifact records who directly confirmed the headless behavior.
 - Checked-in Windows proof is still missing; this gate is not closed yet.
 
 ## Current blocker
@@ -43,7 +44,7 @@
 1. Open **Windows PowerShell** (not WSL) in `C:\CORE\daily-ops-packager`.
 2. Review `config\app.ini` and only add `-IncludeRealRun -ConfirmSafeRealRun` if a real run is safe for the configured upload/email target.
 3. Run:
-   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless`
+   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YourName"`
 4. If the scheduled task already exists, rerun with the scheduler proof included:
-   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ScheduledTaskName "OneClickBackupDaily"`
-5. Commit the updated `docs\headless_default_release_gate.md` once it shows `Status: **PASS**`.
+   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YourName" -ScheduledTaskName "OneClickBackupDaily"`
+5. Commit the updated `docs\headless_default_release_gate.md` once it shows `Status: **PASS**` and records `Observed by: **YourName**`.
