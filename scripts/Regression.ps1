@@ -30,7 +30,7 @@ function Invoke-PowerShellStep {
     [string]$ScriptPath,
     [hashtable]$Arguments = @{},
     [int]$ExpectedExitCode = 0,
-    [string]$ExpectedOutput = ''
+    [string[]]$ExpectedOutput = @()
   )
 
   if (-not (Test-Path -LiteralPath $ScriptPath -PathType Leaf)) {
@@ -61,8 +61,10 @@ function Invoke-PowerShellStep {
     throw "Step '$Name' exited $exitCode (expected $ExpectedExitCode)."
   }
 
-  if ($ExpectedOutput -and $text -notmatch [regex]::Escape($ExpectedOutput)) {
-    throw "Step '$Name' did not emit expected text: $ExpectedOutput"
+  foreach ($expected in $ExpectedOutput) {
+    if ($expected -and $text -notmatch [regex]::Escape($expected)) {
+      throw "Step '$Name' did not emit expected text: $expected"
+    }
   }
 }
 
@@ -83,12 +85,24 @@ try {
   Invoke-PowerShellStep -Name 'Readiness fail fixture (missing watchDir)' -ScriptPath $checkPrereqsScript -Arguments @{ Config = $failWatchConfig } -ExpectedExitCode 1 -ExpectedOutput 'watchDir not found'
   Invoke-PowerShellStep -Name 'Readiness fail fixture (email requirements)' -ScriptPath $checkPrereqsScript -Arguments @{ Config = $failEmailConfig } -ExpectedExitCode 1 -ExpectedOutput 'email.smtpHost is empty'
 
-  $smokeArgs = @{ Config = $SmokeConfig }
+  $defaultSmokeArgs = @{}
   if (-not [string]::IsNullOrWhiteSpace($AhkExe)) {
-    $smokeArgs['AhkExe'] = $AhkExe
+    $defaultSmokeArgs['AhkExe'] = $AhkExe
   }
 
-  Invoke-PowerShellStep -Name 'Dry-run smoke path' -ScriptPath $smokeScript -Arguments $smokeArgs -ExpectedOutput 'Smoke test OK.'
+  Invoke-PowerShellStep -Name 'Dry-run smoke path (literal no-arg default)' -ScriptPath $smokeScript -Arguments $defaultSmokeArgs -ExpectedOutput @(
+    "Using repo-local readiness fixture: $passConfig",
+    'Smoke test OK.'
+  )
+
+  if (($SmokeConfig -replace '/', '\') -ine ($passConfig -replace '/', '\')) {
+    $smokeArgs = @{ Config = $SmokeConfig }
+    if (-not [string]::IsNullOrWhiteSpace($AhkExe)) {
+      $smokeArgs['AhkExe'] = $AhkExe
+    }
+
+    Invoke-PowerShellStep -Name 'Dry-run smoke path (explicit config override)' -ScriptPath $smokeScript -Arguments $smokeArgs -ExpectedOutput 'Smoke test OK.'
+  }
 
   Write-Host 'Regression suite OK.'
 }
