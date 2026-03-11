@@ -1,7 +1,7 @@
 param(
   [ValidateSet('Safe', 'Pass')]
   [string]$Mode = 'Safe',
-  [string]$Config = 'config\app.ini',
+  [string]$Config = 'config\fixtures\readiness.pass.ini',
   [string]$Output = 'docs\headless_default_release_gate.md',
   [string]$Transcript = '',
   [string]$AhkExe = '',

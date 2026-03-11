@@ -1,5 +1,5 @@
 param(
-  [string]$Config = "config\app.ini",
+  [string]$Config = "config\fixtures\readiness.pass.ini",
   [string]$Output = "docs\headless_default_release_gate.md",
   [string]$Transcript = "",
   [string]$AhkExe = "",
@@ -27,7 +27,7 @@ function New-WrapperCommand {
   param(
     [ValidateSet('Safe', 'Pass')]
     [string]$Mode = 'Safe',
-    [string]$ConfigPath = 'config\app.ini',
+    [string]$ConfigPath = 'config\fixtures\readiness.pass.ini',
     [string]$OutputPath = 'docs\headless_default_release_gate.md',
     [string]$TranscriptPath = '',
     [string]$AhkExePath = '',
@@ -47,7 +47,7 @@ function New-WrapperCommand {
   if ($Mode -ne 'Safe') {
     $parts += @('-Mode', $Mode)
   }
-  if ($ConfigPath -ne 'config\app.ini') {
+  if ($ConfigPath -ne 'config\fixtures\readiness.pass.ini') {
     $parts += @('-Config', $ConfigPath)
   }
   if ($OutputPath -ne 'docs\headless_default_release_gate.md') {
@@ -77,6 +77,8 @@ $smokeScript = Join-Path $PSScriptRoot "SmokeTest.ps1"
 $ahkScript = Join-Path $base "src\OneClickBackup.ahk"
 $summaryPath = Join-Path $base ("logs\summary_{0}.csv" -f (Get-Date -Format yyyyMMdd))
 $backupLogPath = Join-Path $base ("logs\backup_{0}.log" -f (Get-Date -Format yyyyMMdd))
+$defaultFixtureConfig = 'config\fixtures\readiness.pass.ini'
+$usingDefaultFixtureConfig = ($Config -replace '/', '\') -ieq $defaultFixtureConfig
 $schedulerProofTaskName = if ([string]::IsNullOrWhiteSpace($ScheduledTaskName)) { 'OneClickBackupDaily' } else { $ScheduledTaskName }
 $wrapperSafeCaptureCommand = New-WrapperCommand -Mode Safe -ConfigPath $Config -OutputPath $Output -TranscriptPath $Transcript -AhkExePath $AhkExe
 $wrapperSafeScheduledCaptureCommand = New-WrapperCommand -Mode Safe -ConfigPath $Config -OutputPath $Output -TranscriptPath $Transcript -AhkExePath $AhkExe -ScheduledTask $schedulerProofTaskName
@@ -92,9 +94,10 @@ if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
     "1) Open Windows PowerShell in $windowsRepoRoot",
     "2) Safe first pass: $wrapperSafeCaptureCommand",
     "3) Optional safe scheduler proof: $wrapperSafeScheduledCaptureCommand",
-    ("4) Review {0} and only continue if a real backup is safe for the configured upload/email target." -f $Config),
-    "5) PASS-grade capture after direct observation: $wrapperPassCaptureCommand",
-    "6) Optional PASS-grade scheduler proof: $wrapperScheduledPassCaptureCommand",
+    ("4) If you want live/local evidence instead of the repo fixture, rerun with -Config config\\app.ini and review that config before any real backup."),
+    ("5) Review {0} and only continue if a real backup is safe for the configured upload/email target." -f $Config),
+    "6) PASS-grade capture after direct observation: $wrapperPassCaptureCommand",
+    "7) Optional PASS-grade scheduler proof: $wrapperScheduledPassCaptureCommand",
     ("Current platform: {0}" -f [System.Environment]::OSVersion.Platform)
   ) -join "`n"))
   exit 2
@@ -424,8 +427,17 @@ $results += Invoke-CapturedStep -Name "Real-run safety review" -Command 'built-i
 $results += Invoke-CapturedStep -Name "Static headless-default guard" -Command 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1' -ScriptBlock {
   & powershell -NoProfile -ExecutionPolicy Bypass -File $checkScript
 }
-$results += Invoke-CapturedStep -Name "Dry-run smoke test" -Command ("powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config {0}" -f $Config) -ScriptBlock {
-  & powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript -Config $Config
+$smokeTestCommand = if ($usingDefaultFixtureConfig) {
+  'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1'
+} else {
+  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config $Config"
+}
+$results += Invoke-CapturedStep -Name "Dry-run smoke test" -Command $smokeTestCommand -ScriptBlock {
+  if ($usingDefaultFixtureConfig) {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript
+  } else {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript -Config $Config
+  }
 }
 
 $realRunResult = $null
