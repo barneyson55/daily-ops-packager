@@ -14,7 +14,8 @@ Small Windows automation that collects today's files from a watch directory, cop
    - manual desktop feedback: `src\OneClickBackup.ahk --config config\app.ini --dry-run --interactive`
    - canonical repo-local regression: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Regression.ps1`
    - static check for the headless default: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
-   - or use the smoke test script: `scripts\SmokeTest.ps1 -Config config\app.ini`
+   - fixture-backed smoke test default: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1`
+   - smoke test against your real/local config only when you mean it: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
    - durable Windows evidence capture (safe default, no real run; run this from native **Windows PowerShell**, not WSL): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1`
    - durable Windows evidence capture with scheduler proof: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1 -ScheduledTaskName "OneClickBackupDaily"`
 5) Run a real backup:
@@ -30,6 +31,9 @@ Small Windows automation that collects today's files from a watch directory, cop
 ## Example commands
 - Static headless-default guard:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
+- Smoke test:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1` (repo-local readiness fixture, dry-run only)
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini` (explicit opt-in to your local config)
 - Durable Windows evidence capture:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1 -ScheduledTaskName "OneClickBackupDaily"`

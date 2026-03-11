@@ -3,67 +3,56 @@
 Autopilot executes the first unchecked **top-level** item (`- [ ]`).
 Keep this file short, current, and evidence-driven.
 
-Last reprioritized: 2026-03-11 18:44 UTC.
+Last reprioritized: 2026-03-11 19:40 UTC.
 
 ## Current evidence snapshot
 
-- Repo status for this maintenance pass is **clean**: `git status --short --branch` returned only `## master...origin/master`.
+- Repo status at the start of this maintenance pass was **clean**: `git status --short --branch` returned only `## master...origin/master`.
 - Docs existence check for this pass:
   - `docs/status.md` → **missing**
   - `docs/critical_todo.md` → **missing**
   - `docs/ai_todo.md` → **present**
   - `docs/deep_research_auto.md` → **present**
-- `scripts/Regression.ps1` now exists and is already referenced by `README.md` as the canonical repo-local regression command.
-- `scripts/Regression.ps1` currently runs:
-  - `scripts/CheckHeadlessDefault.ps1`
-  - `scripts/CheckPrereqs.ps1` against the checked-in pass/fail readiness fixtures
-  - `scripts/SmokeTest.ps1` with a fixture-backed smoke config by default (`config\fixtures\readiness.pass.ini`)
-- The biggest still-open engineering gaps visible from the repo are now:
-  - no GitHub Actions workflow exists under `.github/workflows/`
-  - `scripts/SmokeTest.ps1` still defaults to live/local `config\app.ini` when invoked directly
+- A Windows CI workflow now exists at `.github/workflows/windows-regression.yml` and already runs `scripts\Regression.ps1` on `windows-latest` after installing AutoHotkey.
+- `scripts/Regression.ps1` exists and is the canonical repo-local regression entrypoint.
+- The remaining top engineering gaps visible from current repo evidence are:
+  - the workflow/regression path does **not** yet prove that direct no-arg smoke usage is fixture-backed and safe
   - `scripts/VerifyNonInteractiveDefault.ps1` still duplicates `scripts/CheckHeadlessDefault.ps1`
   - `docs/headless_default_release_gate.md` is still `Status: **PENDING_REAL_RUN**`
-  - `docs/status.md` and `docs/critical_todo.md` are still missing, while root `STATUS.md` is stale (`Last triage: 2026-02-15 (UTC)`) and still leads with installer packaging
-- Because the first unchecked item is what autopilot will execute, the queue should start with the highest-impact work that is still open and materially advances confidence.
+  - `docs/status.md` and `docs/critical_todo.md` are still missing while root `STATUS.md` remains stale (`Last triage: 2026-02-15 (UTC)`) and still leads with installer packaging
+- Because autopilot executes the first unchecked item, the queue should start with the highest-impact **unblocked** work rather than blocked native-Windows proof.
 
 ## Prioritized open items
 
-- [ ] **P0 — Add lightweight Windows CI around the now-existing regression entrypoint**
-  - **Why now:** the repo finally has a canonical `scripts/Regression.ps1`, but nothing runs it automatically on branch changes. The highest leverage next step is turning that local regression surface into an always-on guardrail.
-  - **Deliverables:**
-    - Add a Windows workflow under `.github/workflows/`.
-    - Ensure the workflow installs or resolves AutoHotkey v2 before invoking the regression suite.
-    - Run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Regression.ps1` in CI.
-    - Keep the workflow repo-local and non-secret by using only checked-in fixture configs.
-  - **Verification:**
-    - `powershell -NoProfile -Command "Test-Path .github\workflows\windows.yml"`
-    - `powershell -NoProfile -Command "Get-Content .github\workflows\windows.yml | Select-String -Pattern 'windows-latest|Regression.ps1|AutoHotkey'"`
-    - The workflow file clearly invokes `scripts\Regression.ps1` on a Windows runner.
+- [x] **P0 — Make direct smoke-test usage deterministic and safe by default**
+  - **Completed:** `scripts/SmokeTest.ps1` now defaults to `config\fixtures\readiness.pass.ini`, seeds repo-local fixture env vars for the no-arg path, and restores the caller environment afterward.
+  - **Completed:** README/examples now advertise the fixture-backed no-arg smoke command and keep `config\app.ini` as explicit opt-in only.
+  - **Verification attempted from this WSL/OpenClaw session:** static grep/diff only; native `powershell` is not installed here, so the Windows command still needs to be executed from a native Windows shell for runtime confirmation.
 
-- [ ] **P1 — Make direct smoke-test usage deterministic and safe by default**
-  - **Why now:** regression is now fixture-backed, but `scripts/SmokeTest.ps1` still defaults to `config\app.ini`. That keeps the most obvious one-off smoke command tied to local machine state and possible live settings.
+- [ ] **P1 — Add regression coverage for the direct no-arg smoke path**
+  - **Why now:** once `scripts/SmokeTest.ps1` is made safe by default, that contract still needs an automated guard. The current workflow proves `scripts\Regression.ps1`, but not the direct no-arg smoke entrypoint humans will reach for.
   - **Deliverables:**
-    - Change `scripts/SmokeTest.ps1` so its default path is fixture-backed and dry-run safe, or require `config\app.ini` only via explicit opt-in.
-    - Keep direct smoke usage aligned with the regression suite’s checked-in readiness fixtures.
-    - Update README/examples so the default smoke path no longer implies personal config.
+    - Extend `scripts/Regression.ps1`, CI, or both so the no-argument `scripts\SmokeTest.ps1` path is executed automatically.
+    - Ensure the automated check fails if the default smoke path drifts back to `config\app.ini` or another machine-local config.
+    - Keep the coverage repo-local and non-secret.
   - **Verification:**
-    - `powershell -NoProfile -Command "Get-Content scripts\SmokeTest.ps1 | Select-String -Pattern 'config\\app.ini|config\\fixtures'"`
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1`
-    - The no-argument smoke path is repo-local, repeatable, and dry-run only.
+    - `powershell -NoProfile -Command "Get-Content scripts\Regression.ps1,.github\workflows\windows-regression.yml | Select-String -Pattern 'SmokeTest\.ps1'"`
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Regression.ps1`
+    - The automated regression surface visibly exercises `scripts\SmokeTest.ps1` without requiring `-Config config\app.ini`.
 
 - [ ] **P1 — Collapse duplicate headless static guards onto one canonical script**
-  - **Why now:** both `scripts/CheckHeadlessDefault.ps1` and `scripts/VerifyNonInteractiveDefault.ps1` still exist. The latter adds naming drift without adding meaningful coverage.
+  - **Why now:** both `scripts/CheckHeadlessDefault.ps1` and `scripts/VerifyNonInteractiveDefault.ps1` still exist. The second name adds drift without obvious extra coverage.
   - **Deliverables:**
     - Keep `scripts/CheckHeadlessDefault.ps1` as the canonical guard.
     - Delete `scripts/VerifyNonInteractiveDefault.ps1` or reduce it to a thin compatibility wrapper.
-    - Update any remaining references so the repo points to one canonical headless-check name.
+    - Update remaining references so the repo points to one canonical headless-check name.
   - **Verification:**
     - `grep -RIn "VerifyNonInteractiveDefault" README.md STATUS.md USER_TODO.md docs scripts`
     - `grep -RIn "CheckHeadlessDefault" README.md STATUS.md USER_TODO.md docs scripts`
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
 
 - [ ] **P1 — Close the headless-default release gate with native Windows PASS evidence**
-  - **Why now:** the repo has the capture/assert scaffolding, but the release claim is still not proven by committed Windows evidence.
+  - **Why now:** the repo has CI, static guards, and evidence-capture scaffolding, but the release claim is still not proven by committed native-Windows observation.
   - **Deliverables:**
     - Run the safe capture from native Windows PowerShell.
     - Run the PASS-grade capture after directly observing that default runs stay headless unless `--interactive` is passed.
@@ -75,19 +64,19 @@ Last reprioritized: 2026-03-11 18:44 UTC.
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\AssertHeadlessReleaseGate.ps1 -Path docs\headless_default_release_gate.md`
   - **Current blocker:** this OpenClaw/WSL session cannot launch the native Windows binaries required for the final proof run.
 
-- [ ] **P2 — Canonicalize status docs now that regression exists and packaging is no longer the first story**
-  - **Why now:** `docs/status.md` and `docs/critical_todo.md` are still missing, and root `STATUS.md` still points readers at installer packaging before the real confidence gaps: CI coverage, smoke determinism, and native Windows headless proof.
+- [ ] **P2 — Canonicalize status docs around current confidence gaps instead of installer packaging**
+  - **Why now:** `docs/status.md` and `docs/critical_todo.md` are still missing, and root `STATUS.md` still tells the old story. A reader can still miss that CI is in place and the real remaining gaps are smoke determinism, automated direct-smoke coverage, duplicate guard cleanup, and native Windows proof.
   - **Deliverables:**
     - Add `docs/status.md` for current state, evidence, and known limits.
     - Add `docs/critical_todo.md` for true blockers only.
     - Reconcile root `STATUS.md` so it reflects the current order of work.
   - **Verification:**
     - `powershell -NoProfile -Command "Test-Path docs\status.md; Test-Path docs\critical_todo.md"`
-    - `powershell -NoProfile -Command "Select-String -Path STATUS.md,docs\status.md,docs\critical_todo.md -Pattern 'Regression|headless|CI|installer'"`
+    - `powershell -NoProfile -Command "Select-String -Path STATUS.md,docs\status.md,docs\critical_todo.md -Pattern 'Regression|headless|CI|installer|SmokeTest'"`
 
 ## Notes
 
-- The biggest correction in this pass is **removing the now-false claim that `scripts/Regression.ps1` does not exist**.
-- The queue now treats CI as the highest-leverage next step because the regression command is already present and fixture-backed.
-- Native-Windows proof remains a release blocker, but it is not the first executable repo task from this session.
-- This maintenance pass intentionally stayed within docs-only scope.
+- The biggest correction in this maintenance pass was **removing the now-false assumption that Windows CI is still missing**, then landing the next unblocked engineering fix on top of that updated picture.
+- Direct no-arg smoke usage is now fixture-backed and explicit opt-in is required to exercise `config\app.ini`.
+- Native-Windows PASS evidence remains a real release blocker, but it is intentionally not first because it cannot be completed from this WSL/OpenClaw session.
+- The next executable repo task is adding automated regression coverage for the direct no-arg smoke path.
