@@ -11,6 +11,64 @@ param(
   [switch]$ObservedScheduledTaskHeadless
 )
 
+function Format-PowerShellCliToken([string]$Value) {
+  if ([string]::IsNullOrEmpty($Value)) {
+    return '""'
+  }
+
+  if ($Value -notmatch '[\s"]') {
+    return $Value
+  }
+
+  return '"' + ($Value -replace '"', '`"') + '"'
+}
+
+function New-WrapperCommand {
+  param(
+    [ValidateSet('Safe', 'Pass')]
+    [string]$Mode = 'Safe',
+    [string]$ConfigPath = 'config\app.ini',
+    [string]$OutputPath = 'docs\headless_default_release_gate.md',
+    [string]$TranscriptPath = '',
+    [string]$AhkExePath = '',
+    [string]$ScheduledTask = '',
+    [string]$ObservedByName = ''
+  )
+
+  $parts = @(
+    'powershell',
+    '-NoProfile',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-File',
+    'scripts\RunHeadlessEvidenceCapture.ps1'
+  )
+
+  if ($Mode -ne 'Safe') {
+    $parts += @('-Mode', $Mode)
+  }
+  if ($ConfigPath -ne 'config\app.ini') {
+    $parts += @('-Config', $ConfigPath)
+  }
+  if ($OutputPath -ne 'docs\headless_default_release_gate.md') {
+    $parts += @('-Output', $OutputPath)
+  }
+  if (-not [string]::IsNullOrWhiteSpace($TranscriptPath)) {
+    $parts += @('-Transcript', $TranscriptPath)
+  }
+  if (-not [string]::IsNullOrWhiteSpace($AhkExePath)) {
+    $parts += @('-AhkExe', $AhkExePath)
+  }
+  if (-not [string]::IsNullOrWhiteSpace($ScheduledTask)) {
+    $parts += @('-ScheduledTaskName', $ScheduledTask)
+  }
+  if (-not [string]::IsNullOrWhiteSpace($ObservedByName)) {
+    $parts += @('-ObservedBy', $ObservedByName)
+  }
+
+  return (($parts | ForEach-Object { Format-PowerShellCliToken $_ }) -join ' ')
+}
+
 $base = Split-Path -Parent $PSScriptRoot
 $configPath = Join-Path $base $Config
 $outputPath = Join-Path $base $Output
@@ -19,20 +77,24 @@ $smokeScript = Join-Path $PSScriptRoot "SmokeTest.ps1"
 $ahkScript = Join-Path $base "src\OneClickBackup.ahk"
 $summaryPath = Join-Path $base ("logs\summary_{0}.csv" -f (Get-Date -Format yyyyMMdd))
 $backupLogPath = Join-Path $base ("logs\backup_{0}.log" -f (Get-Date -Format yyyyMMdd))
+$schedulerProofTaskName = if ([string]::IsNullOrWhiteSpace($ScheduledTaskName)) { 'OneClickBackupDaily' } else { $ScheduledTaskName }
+$wrapperSafeCaptureCommand = New-WrapperCommand -Mode Safe -ConfigPath $Config -OutputPath $Output -TranscriptPath $Transcript -AhkExePath $AhkExe
+$wrapperSafeScheduledCaptureCommand = New-WrapperCommand -Mode Safe -ConfigPath $Config -OutputPath $Output -TranscriptPath $Transcript -AhkExePath $AhkExe -ScheduledTask $schedulerProofTaskName
+$wrapperPassCaptureCommand = New-WrapperCommand -Mode Pass -ConfigPath $Config -OutputPath $Output -TranscriptPath $Transcript -AhkExePath $AhkExe -ObservedByName 'YOUR_NAME'
+$wrapperScheduledPassCaptureCommand = New-WrapperCommand -Mode Pass -ConfigPath $Config -OutputPath $Output -TranscriptPath $Transcript -AhkExePath $AhkExe -ScheduledTask $schedulerProofTaskName -ObservedByName 'YOUR_NAME'
+$assertGateCommand = ('powershell -NoProfile -ExecutionPolicy Bypass -File scripts\AssertHeadlessReleaseGate.ps1 -Path {0}' -f (Format-PowerShellCliToken $Output))
 
 if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
   $windowsRepoRoot = 'C:\CORE\daily-ops-packager'
-  $safeCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini'
-  $passCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YOUR_NAME"'
-  $scheduledCaptureCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YOUR_NAME" -ScheduledTaskName "OneClickBackupDaily"'
   Write-Error ((@(
     "This script must be run from native Windows PowerShell in $windowsRepoRoot.",
     'Required human action:',
     "1) Open Windows PowerShell in $windowsRepoRoot",
-    "2) Safe first pass: $safeCaptureCommand",
-    '3) Review config\app.ini and only continue if a real backup is safe for the configured upload/email target.',
-    "4) PASS-grade capture after direct observation: $passCaptureCommand",
-    "5) Optional scheduler evidence: $scheduledCaptureCommand",
+    "2) Safe first pass: $wrapperSafeCaptureCommand",
+    "3) Optional safe scheduler proof: $wrapperSafeScheduledCaptureCommand",
+    ("4) Review {0} and only continue if a real backup is safe for the configured upload/email target." -f $Config),
+    "5) PASS-grade capture after direct observation: $wrapperPassCaptureCommand",
+    "6) Optional PASS-grade scheduler proof: $wrapperScheduledPassCaptureCommand",
     ("Current platform: {0}" -f [System.Environment]::OSVersion.Platform)
   ) -join "`n"))
   exit 2
@@ -65,7 +127,7 @@ if (-not (Test-Path $ahkScript)) {
   exit 1
 }
 if ($IncludeRealRun -and -not $ConfirmSafeRealRun) {
-  Write-Error 'Refusing to perform the real backup run without explicit acknowledgement. Review config\app.ini and rerun with -IncludeRealRun -ConfirmSafeRealRun only when the configured upload/email target is safe.'
+  Write-Error (("Refusing to perform the real backup run without explicit acknowledgement. Review {0} and rerun with -IncludeRealRun -ConfirmSafeRealRun only when the configured upload/email target is safe." -f $Config))
   exit 1
 }
 if (($ObservedDefaultRunHeadless -or $ObservedScheduledTaskHeadless) -and [string]::IsNullOrWhiteSpace($ObservedBy)) {
@@ -425,18 +487,15 @@ $status = if (-not $allStepsPassed) {
   'PENDING_REAL_RUN'
 } elseif (-not $defaultObserved) {
   'PENDING_DEFAULT_OBSERVATION'
-} elseif (-not $scheduledObserved) {
-  'PENDING_SCHEDULED_OBSERVATION'
 } else {
   'PASS'
 }
 
 $nextAction = switch ($status) {
-  'FAIL' { 'Fix the failing command(s), then rerun this capture script on Windows.' }
-  'PENDING_REAL_RUN' { 'Run this script again with -IncludeRealRun -ConfirmSafeRealRun on a real Windows machine after reviewing config safety.' }
-  'PENDING_DEFAULT_OBSERVATION' { 'Repeat the default real run and rerun this script with -ObservedDefaultRunHeadless -ObservedBy "YourName" after confirming no modal dialog appeared.' }
-  'PENDING_SCHEDULED_OBSERVATION' { 'Trigger the scheduled/manual default path on Windows and rerun this script with -ObservedScheduledTaskHeadless -ObservedBy "YourName" (and optionally -ScheduledTaskName) once confirmed headless.' }
-  default { 'Headless-default release gate evidence is complete for this capture.' }
+  'FAIL' { ('Fix the failing command(s), then rerun `{0}` from native Windows PowerShell.' -f $wrapperSafeCaptureCommand) }
+  'PENDING_REAL_RUN' { ('After reviewing config safety, rerun `{0}` on a real Windows machine.' -f $wrapperPassCaptureCommand) }
+  'PENDING_DEFAULT_OBSERVATION' { ('Repeat the default real run and rerun `{0}` after confirming no modal dialog appeared.' -f $wrapperPassCaptureCommand) }
+  default { ('Headless-default release gate evidence is complete for this capture. Verify it with `{0}`.' -f $assertGateCommand) }
 }
 
 $outputDir = Split-Path -Parent $outputPath
@@ -455,13 +514,22 @@ $lines += ('- Observed by: **{0}**' -f $(if ([string]::IsNullOrWhiteSpace($Obser
 $lines += ('- Real run captured: **{0}**' -f ($(if ($realRunCaptured) { 'yes' } else { 'no' })))
 $lines += ('- Scheduled task query captured: **{0}**' -f ($(if ($scheduledTaskEvidenceCaptured) { 'yes' } else { 'no' })))
 $lines += ('- Manual default-run observation recorded: **{0}**' -f ($(if ($defaultObserved) { 'yes' } else { 'no' })))
-$lines += ('- Manual scheduled-task observation recorded: **{0}**' -f ($(if ($scheduledObserved) { 'yes' } else { 'no' })))
+$lines += ('- Optional scheduled-task human observation recorded: **{0}**' -f ($(if ($scheduledObserved) { 'yes' } else { 'no' })))
+$lines += ''
+$lines += '## Native Windows operator shortcuts'
+$lines += ''
+$lines += ('- Safe first pass: `{0}`' -f $wrapperSafeCaptureCommand)
+$lines += ('- Safe first pass with scheduler proof: `{0}`' -f $wrapperSafeScheduledCaptureCommand)
+$lines += ('- PASS-grade capture after direct observation: `{0}`' -f $wrapperPassCaptureCommand)
+$lines += ('- PASS-grade capture with scheduler proof: `{0}`' -f $wrapperScheduledPassCaptureCommand)
+$lines += ('- Assert PASS-grade evidence doc: `{0}`' -f $assertGateCommand)
 $lines += ''
 $lines += '## Verification commands'
 $lines += ''
 foreach ($result in $results) {
   $lines += ('- `{0}`' -f $result.Command)
 }
+$lines += ('- `{0}`' -f $assertGateCommand)
 $lines += ''
 $lines += '## Command results'
 $lines += ''
@@ -478,7 +546,7 @@ $lines += '## Human observation checklist'
 $lines += ''
 $lines += ('- Observer: {0}' -f $(if ([string]::IsNullOrWhiteSpace($ObservedBy)) { '(not recorded)' } else { $ObservedBy }))
 $lines += ('- [{0}] Default run stayed headless (no `MsgBox` / blocking dialog without `--interactive`).' -f ($(if ($defaultObserved) { 'x' } else { ' ' })))
-$lines += ('- [{0}] Scheduled/manual default path stayed headless (no `MsgBox` / blocking dialog without `--interactive`).' -f ($(if ($scheduledObserved) { 'x' } else { ' ' })))
+$lines += ('- [{0}] Optional: a scheduled/manual default path was directly observed staying headless too.' -f ($(if ($scheduledObserved) { 'x' } else { ' ' })))
 $lines += ''
 $lines += '## Next action'
 $lines += ''

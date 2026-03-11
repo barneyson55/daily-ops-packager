@@ -9,7 +9,7 @@ class RcloneUpload {
     if (result.stderr != "")
       Logger.Warn("rclone stderr: " Trim(result.stderr))
 
-    Logger.Info("rclone exit code: " result.exitCode)
-    return result.exitCode
+    Logger.Info("rclone exit code: " result.exitCode " durationMs=" result.durationMs " timedOut=" result.timedOut)
+    return result
   }
 }

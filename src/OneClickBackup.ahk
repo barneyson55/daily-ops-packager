@@ -58,22 +58,28 @@ main() {
     archivePath := cfg.paths.outDir "\\" archiveName
     summary.archivePath := archivePath
 
-    zipExit := ZipPack.CreateArchive(cfg.zip.exe, cfg.paths.tmpDir, archivePath, EnvGet(cfg.zip.passwordEnv))
-    summary.zipExit := zipExit
-    if (zipExit != 0)
-      throw Error("7-Zip failed with exit code " zipExit)
+    zipResult := ZipPack.CreateArchive(cfg.zip.exe, cfg.paths.tmpDir, archivePath, EnvGet(cfg.zip.passwordEnv))
+    summary.zipExit := zipResult.exitCode
+    if (zipResult.timedOut)
+      throw Error("7-Zip timed out after " zipResult.durationMs " ms")
+    if (zipResult.exitCode != 0)
+      throw Error("7-Zip failed with exit code " zipResult.exitCode)
 
     if (cfg.zip.verify) {
-      verifyExit := ZipPack.VerifyArchive(cfg.zip.exe, archivePath, EnvGet(cfg.zip.passwordEnv))
-      summary.verifyExit := verifyExit
-      if (verifyExit != 0)
-        throw Error("7-Zip verify failed with exit code " verifyExit)
+      verifyResult := ZipPack.VerifyArchive(cfg.zip.exe, archivePath, EnvGet(cfg.zip.passwordEnv))
+      summary.verifyExit := verifyResult.exitCode
+      if (verifyResult.timedOut)
+        throw Error("7-Zip verify timed out after " verifyResult.durationMs " ms")
+      if (verifyResult.exitCode != 0)
+        throw Error("7-Zip verify failed with exit code " verifyResult.exitCode)
     }
 
-    uploadExit := RcloneUpload.Upload(cfg.rclone.exe, archivePath, cfg.rclone.remote, cfg.rclone.retries)
-    summary.uploadExit := uploadExit
-    if (uploadExit != 0)
-      throw Error("rclone failed with exit code " uploadExit)
+    uploadResult := RcloneUpload.Upload(cfg.rclone.exe, archivePath, cfg.rclone.remote, cfg.rclone.retries)
+    summary.uploadExit := uploadResult.exitCode
+    if (uploadResult.timedOut)
+      throw Error("rclone timed out after " uploadResult.durationMs " ms")
+    if (uploadResult.exitCode != 0)
+      throw Error("rclone failed with exit code " uploadResult.exitCode)
 
     try DirDelete(cfg.paths.tmpDir, true)
     catch as err2

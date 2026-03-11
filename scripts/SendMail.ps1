@@ -5,12 +5,18 @@ param(
   [Parameter(Mandatory=$true)][string]$From,
   [Parameter(Mandatory=$true)][string]$To,
   [Parameter(Mandatory=$true)][string]$User,
-  [Parameter(Mandatory=$true)][string]$Password,
+  [Parameter(Mandatory=$true)][string]$PasswordEnv,
   [Parameter(Mandatory=$true)][string]$Subject,
   [Parameter(Mandatory=$true)][string]$Body
 )
 
-$secure = ConvertTo-SecureString $Password -AsPlainText -Force
+$password = [Environment]::GetEnvironmentVariable($PasswordEnv)
+if ([string]::IsNullOrWhiteSpace($password)) {
+  throw "Missing SMTP password env: $PasswordEnv"
+}
+
+$secure = ConvertTo-SecureString $password -AsPlainText -Force
+$password = $null
 $cred = New-Object System.Management.Automation.PSCredential($User, $secure)
 
 $smtp = New-Object System.Net.Mail.SmtpClient($SmtpHost, $SmtpPort)

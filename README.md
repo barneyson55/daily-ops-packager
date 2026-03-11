@@ -30,10 +30,11 @@ Small Windows automation that collects today's files from a watch directory, cop
 - Static headless-default guard:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
 - Durable Windows evidence capture:
-  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini`
-  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -ScheduledTaskName "OneClickBackupDaily"`
-  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YourName"`
-  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CaptureHeadlessEvidence.ps1 -Config config\app.ini -IncludeRealRun -ConfirmSafeRealRun -ObservedDefaultRunHeadless -ObservedScheduledTaskHeadless -ObservedBy "YourName" -ScheduledTaskName "OneClickBackupDaily"`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1 -ScheduledTaskName "OneClickBackupDaily"`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1 -Mode Pass -ObservedBy "YourName"` (auto-runs the PASS assert when capture succeeds)
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1 -Mode Pass -ObservedBy "YourName" -ScheduledTaskName "OneClickBackupDaily"` (auto-runs the PASS assert and requires scheduler proof)
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\AssertHeadlessReleaseGate.ps1 -Path docs\headless_default_release_gate.md` (manual re-check)
 - Dry-run:
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run`
   - `src\OneClickBackup.ahk --config config\app.sample.ini --dry-run --interactive`
@@ -48,7 +49,8 @@ Small Windows automation that collects today's files from a watch directory, cop
 - `docs\headless_default_release_gate.md`
 
 ## Evidence notes
-- `scripts\CaptureHeadlessEvidence.ps1` writes the durable gate artifact to `docs\headless_default_release_gate.md`.
+- `scripts\RunHeadlessEvidenceCapture.ps1` is the short-form native Windows wrapper for the full capture flow.
+- `scripts\CaptureHeadlessEvidence.ps1` still writes the durable gate artifact to `docs\headless_default_release_gate.md`.
 - The capture script now fails early with an exact native-Windows instruction when launched from a non-Windows host, including copy/paste-ready safe-first and PASS-grade rerun commands.
 - The capture script also refuses `-IncludeRealRun` unless `-ConfirmSafeRealRun` is passed after reviewing `config\app.ini` safety.
 - Each capture now includes a resolved config safety review (watch/output/tmp paths, upload/email targets, env-var readiness) before any optional real run.
@@ -56,6 +58,7 @@ Small Windows automation that collects today's files from a watch directory, cop
 - When `-ScheduledTaskName` is supplied, the same capture now audits the registered task action and fails if the task injects `--interactive`, stops targeting `OneClickBackup.ahk`, or drops the explicit config flag.
 - The generated evidence now includes runtime context plus the latest `logs\backup_YYYYMMDD.log` tail alongside the headless guard, smoke-test, summary, and optional scheduler proof/action audit.
 - PASS-grade observation flags now require `-ObservedBy "YourName"` so the artifact records who directly confirmed the headless behavior.
+- In `-Mode Pass`, the wrapper now auto-runs `scripts\AssertHeadlessReleaseGate.ps1` against the same output path, so the command fails immediately if the evidence doc is still not PASS-grade.
 
 ## Notes
 - No secrets are stored in the repo; use environment variables.

@@ -6,12 +6,19 @@ param(
   [string]$Transcript = '',
   [string]$AhkExe = '',
   [string]$ScheduledTaskName = '',
-  [string]$ObservedBy = ''
+  [string]$ObservedBy = '',
+  [switch]$ObservedScheduledTaskHeadless
 )
 
 $scriptPath = Join-Path $PSScriptRoot 'CaptureHeadlessEvidence.ps1'
 if (-not (Test-Path $scriptPath)) {
   Write-Error "CaptureHeadlessEvidence.ps1 not found: $scriptPath"
+  exit 1
+}
+
+$assertScriptPath = Join-Path $PSScriptRoot 'AssertHeadlessReleaseGate.ps1'
+if ($Mode -eq 'Pass' -and -not (Test-Path $assertScriptPath)) {
+  Write-Error "AssertHeadlessReleaseGate.ps1 not found: $assertScriptPath"
   exit 1
 }
 
@@ -32,8 +39,8 @@ if (-not [string]::IsNullOrWhiteSpace($ScheduledTaskName)) {
 
 switch ($Mode) {
   'Safe' {
-    if (-not [string]::IsNullOrWhiteSpace($ObservedBy)) {
-      Write-Warning 'Ignoring -ObservedBy in Safe mode. Use -Mode Pass once you have directly observed the Windows run stay headless.'
+    if ((-not [string]::IsNullOrWhiteSpace($ObservedBy)) -or $ObservedScheduledTaskHeadless) {
+      Write-Warning 'Ignoring observation flags in Safe mode. Use -Mode Pass once you have directly observed the Windows run stay headless.'
     }
   }
   'Pass' {
@@ -45,9 +52,28 @@ switch ($Mode) {
     $invokeArgs['IncludeRealRun'] = $true
     $invokeArgs['ConfirmSafeRealRun'] = $true
     $invokeArgs['ObservedDefaultRunHeadless'] = $true
-    $invokeArgs['ObservedScheduledTaskHeadless'] = $true
+    if ($ObservedScheduledTaskHeadless) {
+      $invokeArgs['ObservedScheduledTaskHeadless'] = $true
+    }
     $invokeArgs['ObservedBy'] = $ObservedBy
   }
 }
 
 & $scriptPath @invokeArgs
+
+if ($Mode -eq 'Pass') {
+  $assertArgs = @{
+    Path = $Output
+  }
+
+  if (-not [string]::IsNullOrWhiteSpace($ScheduledTaskName)) {
+    $assertArgs['RequireScheduledTaskQuery'] = $true
+    $assertArgs['ScheduledTaskName'] = $ScheduledTaskName
+  }
+  if ($ObservedScheduledTaskHeadless) {
+    $assertArgs['RequireScheduledTaskObservation'] = $true
+  }
+
+  Write-Host 'Verifying PASS-grade headless release gate evidence...'
+  & $assertScriptPath @assertArgs
+}

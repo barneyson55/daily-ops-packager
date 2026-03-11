@@ -21,8 +21,8 @@ class ZipPack {
     if (result.stderr != "")
       Logger.Warn("7-Zip stderr: " Trim(result.stderr))
 
-    Logger.Info("7-Zip exit code: " result.exitCode)
-    return result.exitCode
+    Logger.Info("7-Zip exit code: " result.exitCode " durationMs=" result.durationMs " timedOut=" result.timedOut)
+    return result
   }
 
   static VerifyArchive(zipExe, archivePath, password) {
@@ -38,7 +38,7 @@ class ZipPack {
     if (result.stderr != "")
       Logger.Warn("7-Zip verify stderr: " Trim(result.stderr))
 
-    Logger.Info("7-Zip verify exit code: " result.exitCode)
-    return result.exitCode
+    Logger.Info("7-Zip verify exit code: " result.exitCode " durationMs=" result.durationMs " timedOut=" result.timedOut)
+    return result
   }
 }

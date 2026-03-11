@@ -3,9 +3,8 @@ class Notify {
     if (!emailCfg.enabled)
       return
 
-    pass := EnvGet(emailCfg.passwordEnv)
-    if (pass = "")
-      throw Error("Missing SMTP password env: " emailCfg.passwordEnv)
+    if (emailCfg.passwordEnv = "")
+      throw Error("email.passwordEnv is empty")
 
     scriptPath := DirGetParent(A_ScriptDir) "\\scripts\\SendMail.ps1"
     cmd := "powershell -NoProfile -ExecutionPolicy Bypass -File " . Shell.Quote(scriptPath)
@@ -15,12 +14,11 @@ class Notify {
     cmd .= " -From " . Shell.Quote(emailCfg.from)
     cmd .= " -To " . Shell.Quote(emailCfg.to)
     cmd .= " -User " . Shell.Quote(emailCfg.user)
-    cmd .= " -Password " . Shell.Quote(pass)
+    cmd .= " -PasswordEnv " . Shell.Quote(emailCfg.passwordEnv)
     cmd .= " -Subject " . Shell.Quote(subject)
     cmd .= " -Body " . Shell.Quote(body)
 
-    logCmd := StrReplace(cmd, Shell.Quote(pass), """***""")
-    Logger.Info("Sending email: " logCmd)
+    Logger.Info("Sending email: " cmd)
 
     result := Shell.Exec(cmd, "", true)
     if (result.stdout != "")
@@ -28,6 +26,10 @@ class Notify {
     if (result.stderr != "")
       Logger.Warn("SendMail stderr: " Trim(result.stderr))
 
+    Logger.Info("SendMail exit code: " result.exitCode " durationMs=" result.durationMs " timedOut=" result.timedOut)
+
+    if (result.timedOut)
+      throw Error("SendMail.ps1 timed out after " result.durationMs " ms")
     if (result.exitCode != 0)
       throw Error("SendMail.ps1 failed with exit code " result.exitCode)
   }
