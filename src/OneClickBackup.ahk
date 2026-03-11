@@ -2,6 +2,7 @@
 #SingleInstance Force
 
 #Include %A_ScriptDir%\Lib\Config.ahk
+#Include %A_ScriptDir%\Lib\Readiness.ahk
 #Include %A_ScriptDir%\Lib\Logger.ahk
 #Include %A_ScriptDir%\Lib\Shell.ahk
 #Include %A_ScriptDir%\Lib\FileCollector.ahk
@@ -153,47 +154,9 @@ ShowHelp(interactive := false) {
 }
 
 ValidatePrereqs(cfg, dryRun := false) {
-  if (cfg.paths.watchDir = "")
-    throw Error("paths.watchDir is empty")
-  if (!DirExist(cfg.paths.watchDir))
-    throw Error("watchDir not found: " cfg.paths.watchDir)
-
-  if (cfg.patterns.extensions = "")
-    throw Error("patterns.extensions is empty")
-
-  if (!dryRun) {
-    if (cfg.paths.tmpDir = "")
-      throw Error("paths.tmpDir is empty")
-    if (cfg.paths.outDir = "")
-      throw Error("paths.outDir is empty")
-
-    if (cfg.zip.exe = "" || !FileExist(cfg.zip.exe))
-      throw Error("7-Zip not found: " cfg.zip.exe)
-    if (cfg.zip.passwordEnv = "")
-      throw Error("zip.passwordEnv is empty")
-    if (cfg.zip.archiveName = "")
-      throw Error("zip.archiveName is empty")
-    if (EnvGet(cfg.zip.passwordEnv) = "")
-      throw Error("Missing zip password env: " cfg.zip.passwordEnv)
-
-    if (cfg.rclone.exe = "" || !FileExist(cfg.rclone.exe))
-      throw Error("rclone not found: " cfg.rclone.exe)
-    if (cfg.rclone.remote = "")
-      throw Error("rclone.remote is empty")
-
-    if (cfg.email.enabled) {
-      if (cfg.email.smtpHost = "")
-        throw Error("email.smtpHost is empty")
-      if (cfg.email.from = "" || cfg.email.to = "")
-        throw Error("email.from or email.to is empty")
-      if (cfg.email.user = "")
-        throw Error("email.user is empty")
-      if (cfg.email.passwordEnv = "")
-        throw Error("email.passwordEnv is empty")
-      if (EnvGet(cfg.email.passwordEnv) = "")
-        throw Error("Missing SMTP password env: " cfg.email.passwordEnv)
-    }
-  }
+  baseDir := DirGetParent(A_ScriptDir)
+  contractPath := Config.ResolvePath("config\\readiness.contract.ini", baseDir)
+  Readiness.Validate(cfg, contractPath, dryRun)
 }
 
 ConsoleWrite(text) {
