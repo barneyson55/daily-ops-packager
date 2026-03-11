@@ -47,6 +47,21 @@ function Get-BoldMetadataValue {
   return $match.Groups[1].Value.Trim()
 }
 
+function Get-ShortcutCommand {
+  param(
+    [string]$Label,
+    [string]$Body
+  )
+
+  $pattern = '(?m)^-\s+' + [Regex]::Escape($Label) + ':\s+`([^`]+)`\s*$'
+  $match = [Regex]::Match($Body, $pattern)
+  if (-not $match.Success) {
+    return ''
+  }
+
+  return $match.Groups[1].Value.Trim()
+}
+
 $status = Get-BoldMetadataValue -Label 'Status' -Body $content
 if ($status -ne 'PASS') {
   $failures.Add(("Expected Status: **PASS**, found: {0}" -f $(if ([string]::IsNullOrWhiteSpace($status)) { '(missing)' } else { "**$status**" })))
@@ -82,7 +97,21 @@ if ($RequireScheduledTaskObservation) {
 }
 
 if ($failures.Count -gt 0) {
-  $captureParts = @(
+  $resolvedScheduledTaskName = if ([string]::IsNullOrWhiteSpace($ScheduledTaskName)) { 'OneClickBackupDaily' } else { $ScheduledTaskName }
+
+  $safeCaptureParts = @(
+    'powershell',
+    '-NoProfile',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-File',
+    'scripts\RunHeadlessEvidenceCapture.ps1'
+  )
+  if ($RequireScheduledTaskQuery -or $RequireScheduledTaskObservation) {
+    $safeCaptureParts += @('-ScheduledTaskName', (Format-PowerShellCliToken $resolvedScheduledTaskName))
+  }
+
+  $passCaptureParts = @(
     'powershell',
     '-NoProfile',
     '-ExecutionPolicy',
@@ -94,17 +123,35 @@ if ($failures.Count -gt 0) {
     '-ObservedBy',
     '"YourName"'
   )
-
   if ($RequireScheduledTaskQuery -or $RequireScheduledTaskObservation) {
-    $resolvedScheduledTaskName = if ([string]::IsNullOrWhiteSpace($ScheduledTaskName)) { 'OneClickBackupDaily' } else { $ScheduledTaskName }
-    $captureParts += @('-ScheduledTaskName', (Format-PowerShellCliToken $resolvedScheduledTaskName))
+    $passCaptureParts += @('-ScheduledTaskName', (Format-PowerShellCliToken $resolvedScheduledTaskName))
   }
   if ($RequireScheduledTaskObservation) {
-    $captureParts += '-ObservedScheduledTaskHeadless'
+    $passCaptureParts += '-ObservedScheduledTaskHeadless'
   }
 
-  $requiredCaptureCommand = $captureParts -join ' '
-  $requiredAssertCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\AssertHeadlessReleaseGate.ps1 -Path {0}' -f (Format-PowerShellCliToken $Path)
+  $fallbackSafeCaptureCommand = $safeCaptureParts -join ' '
+  $fallbackPassCaptureCommand = $passCaptureParts -join ' '
+  $fallbackAssertCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\AssertHeadlessReleaseGate.ps1 -Path {0}' -f (Format-PowerShellCliToken $Path)
+
+  $preferredSafeCaptureCommand = if ($RequireScheduledTaskQuery -or $RequireScheduledTaskObservation) {
+    Get-ShortcutCommand -Label 'Safe first pass with scheduler proof' -Body $content
+  } else {
+    Get-ShortcutCommand -Label 'Safe first pass' -Body $content
+  }
+  $preferredPassCaptureCommand = if ($RequireScheduledTaskQuery -or $RequireScheduledTaskObservation) {
+    Get-ShortcutCommand -Label 'PASS-grade capture with scheduler proof' -Body $content
+  } else {
+    Get-ShortcutCommand -Label 'PASS-grade capture after direct observation' -Body $content
+  }
+  $preferredAssertCommand = Get-ShortcutCommand -Label 'Assert PASS-grade evidence doc' -Body $content
+
+  $requiredCaptureCommand = if ($status -eq 'FAIL') {
+    if ([string]::IsNullOrWhiteSpace($preferredSafeCaptureCommand)) { $fallbackSafeCaptureCommand } else { $preferredSafeCaptureCommand }
+  } else {
+    if ([string]::IsNullOrWhiteSpace($preferredPassCaptureCommand)) { $fallbackPassCaptureCommand } else { $preferredPassCaptureCommand }
+  }
+  $requiredAssertCommand = if ([string]::IsNullOrWhiteSpace($preferredAssertCommand)) { $fallbackAssertCommand } else { $preferredAssertCommand }
 
   Write-Error ((@(
     "Headless release gate is not closed: $docPath",
