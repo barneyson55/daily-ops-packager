@@ -3,7 +3,7 @@
 Autopilot executes the first unchecked **top-level** item (`- [ ]`).
 Keep this file short, current, and evidence-driven.
 
-Last reprioritized: 2026-03-11 17:52 UTC.
+Last reprioritized: 2026-03-11 18:44 UTC.
 
 ## Current evidence snapshot
 
@@ -13,58 +13,57 @@ Last reprioritized: 2026-03-11 17:52 UTC.
   - `docs/critical_todo.md` → **missing**
   - `docs/ai_todo.md` → **present**
   - `docs/deep_research_auto.md` → **present**
-- Root `STATUS.md` is still stale for roadmap guidance: `Last triage: 2026-02-15 (UTC)` and its first top-level task is still installer packaging.
-- The previous top blocker in this file is now **closed by repo evidence**:
-  - `src/OneClickBackup.ahk` now delegates `ValidatePrereqs(...)` to `config\readiness.contract.ini`
-  - `scripts/CheckPrereqs.ps1` reads the same `config\readiness.contract.ini`
-  - `config/fixtures/` now exists with deterministic pass/fail configs and stubbed `bin/`, `watch/`, `tmp/`, and `out/` assets
+- `scripts/Regression.ps1` now exists and is already referenced by `README.md` as the canonical repo-local regression command.
+- `scripts/Regression.ps1` currently runs:
+  - `scripts/CheckHeadlessDefault.ps1`
+  - `scripts/CheckPrereqs.ps1` against the checked-in pass/fail readiness fixtures
+  - `scripts/SmokeTest.ps1` with a fixture-backed smoke config by default (`config\fixtures\readiness.pass.ini`)
 - The biggest still-open engineering gaps visible from the repo are now:
-  - no canonical `scripts/Regression.ps1` exists
-  - no `.github/workflows/*` entrypoint exists
-  - `scripts/SmokeTest.ps1` still defaults to live `config\app.ini`, making the most obvious smoke path less deterministic than the new readiness-fixture path
-  - `scripts/VerifyNonInteractiveDefault.ps1` still duplicates `scripts/CheckHeadlessDefault.ps1`, while the latter is the only script referenced by README and evidence-capture flow
-  - `docs/headless_default_release_gate.md` is still `Status: **PENDING_REAL_RUN**` and requires native Windows execution
-- Because the first unchecked item is what autopilot will execute, the queue should start with the highest-impact repo work that is **still open and unblocked here**.
+  - no GitHub Actions workflow exists under `.github/workflows/`
+  - `scripts/SmokeTest.ps1` still defaults to live/local `config\app.ini` when invoked directly
+  - `scripts/VerifyNonInteractiveDefault.ps1` still duplicates `scripts/CheckHeadlessDefault.ps1`
+  - `docs/headless_default_release_gate.md` is still `Status: **PENDING_REAL_RUN**`
+  - `docs/status.md` and `docs/critical_todo.md` are still missing, while root `STATUS.md` is stale (`Last triage: 2026-02-15 (UTC)`) and still leads with installer packaging
+- Because the first unchecked item is what autopilot will execute, the queue should start with the highest-impact work that is still open and materially advances confidence.
 
 ## Prioritized open items
 
-- [ ] **P0 — Add one canonical regression command that exercises the repo-local confidence surface**
-  - **Why now:** the repo now has the right building blocks (`readiness.contract.ini`, fixtures, headless guard, smoke script), but still lacks one command that says “this branch is basically healthy.”
+- [ ] **P0 — Add lightweight Windows CI around the now-existing regression entrypoint**
+  - **Why now:** the repo finally has a canonical `scripts/Regression.ps1`, but nothing runs it automatically on branch changes. The highest leverage next step is turning that local regression surface into an always-on guardrail.
   - **Deliverables:**
-    - Add `scripts/Regression.ps1` as the canonical local regression entrypoint.
-    - Make it run the static headless guard.
-    - Make it run readiness pass/fail assertions using `config\fixtures\readiness.pass.ini`, `config\fixtures\readiness.fail-watchdir.ini`, and `config\fixtures\readiness.fail-email.ini`.
-    - Include one dry-run smoke path with an explicit safe config, not an implicit dependency on a personal `config\app.ini`.
+    - Add a Windows workflow under `.github/workflows/`.
+    - Ensure the workflow installs or resolves AutoHotkey v2 before invoking the regression suite.
+    - Run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Regression.ps1` in CI.
+    - Keep the workflow repo-local and non-secret by using only checked-in fixture configs.
   - **Verification:**
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Regression.ps1`
-    - `powershell -NoProfile -Command "Get-Content scripts\Regression.ps1 | Select-String -Pattern 'CheckHeadlessDefault|CheckPrereqs|SmokeTest|readiness.pass|readiness.fail'"`
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckPrereqs.ps1 -Config config\fixtures\readiness.pass.ini`
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckPrereqs.ps1 -Config config\fixtures\readiness.fail-watchdir.ini`
+    - `powershell -NoProfile -Command "Test-Path .github\workflows\windows.yml"`
+    - `powershell -NoProfile -Command "Get-Content .github\workflows\windows.yml | Select-String -Pattern 'windows-latest|Regression.ps1|AutoHotkey'"`
+    - The workflow file clearly invokes `scripts\Regression.ps1` on a Windows runner.
 
-- [ ] **P1 — Make the smoke path deterministic and safe by default**
-  - **Why now:** `scripts/SmokeTest.ps1` exists, but its default `-Config config\app.ini` still points at a live/local config, which weakens reproducibility and makes it a poor default for autopilot or future CI.
+- [ ] **P1 — Make direct smoke-test usage deterministic and safe by default**
+  - **Why now:** regression is now fixture-backed, but `scripts/SmokeTest.ps1` still defaults to `config\app.ini`. That keeps the most obvious one-off smoke command tied to local machine state and possible live settings.
   - **Deliverables:**
-    - Add or document a fixture-backed smoke config/path that is safe for repeated dry-runs.
-    - Make the default smoke invocation explicitly deterministic, or require `config\app.ini` to be passed only when the operator intends to exercise a real local setup.
-    - Ensure the smoke path does not depend on personal secrets unless the caller explicitly opts into the live config.
+    - Change `scripts/SmokeTest.ps1` so its default path is fixture-backed and dry-run safe, or require `config\app.ini` only via explicit opt-in.
+    - Keep direct smoke usage aligned with the regression suite’s checked-in readiness fixtures.
+    - Update README/examples so the default smoke path no longer implies personal config.
   - **Verification:**
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config <safe-fixture-or-sample-config>`
-    - `powershell -NoProfile -Command "Get-Content scripts\SmokeTest.ps1 | Select-String -Pattern 'config\\app.ini|AhkExe|dry-run'"`
-    - The documented default smoke path is repo-local, repeatable, and dry-run only.
+    - `powershell -NoProfile -Command "Get-Content scripts\SmokeTest.ps1 | Select-String -Pattern 'config\\app.ini|config\\fixtures'"`
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1`
+    - The no-argument smoke path is repo-local, repeatable, and dry-run only.
 
 - [ ] **P1 — Collapse duplicate headless static guards onto one canonical script**
-  - **Why now:** both `scripts/CheckHeadlessDefault.ps1` and `scripts/VerifyNonInteractiveDefault.ps1` still exist, but README and the evidence-capture flow only point to `CheckHeadlessDefault.ps1`. Keeping both invites drift.
+  - **Why now:** both `scripts/CheckHeadlessDefault.ps1` and `scripts/VerifyNonInteractiveDefault.ps1` still exist. The latter adds naming drift without adding meaningful coverage.
   - **Deliverables:**
-    - Keep `scripts/CheckHeadlessDefault.ps1` as the canonical static guard.
-    - Either delete `scripts/VerifyNonInteractiveDefault.ps1` or turn it into a thin wrapper that simply calls the canonical script.
-    - Ensure docs and scripts reference only the canonical name.
+    - Keep `scripts/CheckHeadlessDefault.ps1` as the canonical guard.
+    - Delete `scripts/VerifyNonInteractiveDefault.ps1` or reduce it to a thin compatibility wrapper.
+    - Update any remaining references so the repo points to one canonical headless-check name.
   - **Verification:**
-    - `grep -RIn "VerifyNonInteractiveDefault" .`
-    - `grep -RIn "CheckHeadlessDefault" README.md USER_TODO.md docs scripts`
+    - `grep -RIn "VerifyNonInteractiveDefault" README.md STATUS.md USER_TODO.md docs scripts`
+    - `grep -RIn "CheckHeadlessDefault" README.md STATUS.md USER_TODO.md docs scripts`
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
 
-- [ ] **P1 — Close the headless-default release gate with native Windows evidence**
-  - **Why now:** the tooling is in place (`RunHeadlessEvidenceCapture.ps1`, `AssertHeadlessReleaseGate.ps1`), but the checked-in release gate is still open because the final proof run has not been captured from native Windows.
+- [ ] **P1 — Close the headless-default release gate with native Windows PASS evidence**
+  - **Why now:** the repo has the capture/assert scaffolding, but the release claim is still not proven by committed Windows evidence.
   - **Deliverables:**
     - Run the safe capture from native Windows PowerShell.
     - Run the PASS-grade capture after directly observing that default runs stay headless unless `--interactive` is passed.
@@ -76,29 +75,19 @@ Last reprioritized: 2026-03-11 17:52 UTC.
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\AssertHeadlessReleaseGate.ps1 -Path docs\headless_default_release_gate.md`
   - **Current blocker:** this OpenClaw/WSL session cannot launch the native Windows binaries required for the final proof run.
 
-- [ ] **P2 — Add lightweight Windows CI only after the local regression command exists**
-  - **Why now:** `.github/workflows/*` is still absent. CI would be useful, but only after the repo has one clean local regression surface worth automating.
-  - **Deliverables:**
-    - Add a Windows workflow that invokes `scripts\Regression.ps1`.
-    - Keep CI limited to repo-local, non-secret checks unless explicitly opted into live environment coverage.
-    - Publish the workflow path in README or status docs.
-  - **Verification:**
-    - `powershell -NoProfile -Command "Test-Path .github\workflows\windows.yml"`
-    - `powershell -NoProfile -Command "Get-Content .github\workflows\windows.yml | Select-String -Pattern 'Regression.ps1|windows'"`
-
-- [ ] **P2 — Canonicalize release-state docs after regression and headless proof are in place**
-  - **Why now:** `docs/status.md` and `docs/critical_todo.md` are still missing, while root `STATUS.md` still points readers at installer packaging before regression confidence and headless proof are closed.
+- [ ] **P2 — Canonicalize status docs now that regression exists and packaging is no longer the first story**
+  - **Why now:** `docs/status.md` and `docs/critical_todo.md` are still missing, and root `STATUS.md` still points readers at installer packaging before the real confidence gaps: CI coverage, smoke determinism, and native Windows headless proof.
   - **Deliverables:**
     - Add `docs/status.md` for current state, evidence, and known limits.
     - Add `docs/critical_todo.md` for true blockers only.
-    - Reconcile root `STATUS.md` so regression confidence and headless-proof work appear ahead of packaging.
+    - Reconcile root `STATUS.md` so it reflects the current order of work.
   - **Verification:**
     - `powershell -NoProfile -Command "Test-Path docs\status.md; Test-Path docs\critical_todo.md"`
-    - `powershell -NoProfile -Command "Select-String -Path STATUS.md,docs\status.md,docs\critical_todo.md -Pattern 'regression|headless|installer'"`
+    - `powershell -NoProfile -Command "Select-String -Path STATUS.md,docs\status.md,docs\critical_todo.md -Pattern 'Regression|headless|CI|installer'"`
 
 ## Notes
 
-- The biggest correction in this pass is **removing an already-landed item from the top of the queue**: readiness-contract unification and fixture creation are no longer open blockers.
-- The new top item is the missing canonical regression command, because it is the highest-impact repo-local gap still open.
-- Native-Windows evidence remains a top-tier release blocker, but not the first executable task in this session.
+- The biggest correction in this pass is **removing the now-false claim that `scripts/Regression.ps1` does not exist**.
+- The queue now treats CI as the highest-leverage next step because the regression command is already present and fixture-backed.
+- Native-Windows proof remains a release blocker, but it is not the first executable repo task from this session.
 - This maintenance pass intentionally stayed within docs-only scope.

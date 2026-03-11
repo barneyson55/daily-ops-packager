@@ -1,0 +1,45 @@
+name: Windows regression
+
+on:
+  push:
+    paths:
+      - '.github/workflows/windows-regression.yml'
+      - 'config/**'
+      - 'scripts/**'
+      - 'src/**'
+  pull_request:
+    paths:
+      - '.github/workflows/windows-regression.yml'
+      - 'config/**'
+      - 'scripts/**'
+      - 'src/**'
+  workflow_dispatch:
+
+jobs:
+  regression:
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install AutoHotkey v2
+        shell: powershell
+        run: |
+          choco install autohotkey --yes --no-progress
+
+          $ahk = Get-Command AutoHotkey64.exe -ErrorAction SilentlyContinue
+          if (-not $ahk) {
+            $ahk = Get-Command AutoHotkey.exe -ErrorAction SilentlyContinue
+          }
+
+          if (-not $ahk) {
+            throw 'AutoHotkey executable not found after Chocolatey install.'
+          }
+
+          Write-Host "Resolved AutoHotkey at $($ahk.Source)"
+
+      - name: Run regression suite
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Regression.ps1
