@@ -15,5 +15,4 @@ Last triage: 2026-03-12 (UTC)
 
 ## Next work in order
 1. Close the native Windows PASS evidence gate in `docs/headless_default_release_gate.md`.
-2. Collapse the duplicate static guard surface so `scripts\CheckHeadlessDefault.ps1` is the single canonical guard.
-3. Sweep stale smoke-command guidance so `scripts\SmokeTest.ps1 -Config config\app.ini` appears only as explicit opt-in or clearly historical context.
+2. Sweep stale smoke-command guidance so `scripts\SmokeTest.ps1 -Config config\app.ini` appears only as explicit opt-in or clearly historical context.

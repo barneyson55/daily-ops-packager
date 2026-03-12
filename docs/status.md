@@ -82,5 +82,4 @@ If someone asks "are we release-ready?", the accurate answer is:
 ## Next work in order
 
 1. **Manual/native Windows:** close `docs\headless_default_release_gate.md` with PASS evidence.
-2. **Unblocked engineering cleanup:** collapse the duplicate static guard surface so `scripts\CheckHeadlessDefault.ps1` is the only canonical guard.
-3. **Docs cleanup:** remove or clearly mark stale `scripts\SmokeTest.ps1 -Config config\app.ini` guidance outside explicit opt-in or historical contexts.
+2. **Docs cleanup:** remove or clearly mark stale `scripts\SmokeTest.ps1 -Config config\app.ini` guidance outside explicit opt-in or historical contexts.
