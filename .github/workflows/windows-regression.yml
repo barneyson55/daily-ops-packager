@@ -112,6 +112,20 @@ jobs:
             throw 'AutoHotkey v2 executable not found after Chocolatey install.'
           }
 
+          $probeOutput = & $ahkPath '/ErrorStdOut' '/CP65001' 2>&1 | Out-String
+          if ($probeOutput -match '(?im)This script requires AutoHotkey v2\.0\.' -or
+              $probeOutput -match '(?im)Current interpreter:\s*AutoHotkey v1(?:\.|\b)' -or
+              $probeOutput -match '(?im)\bAutoHotkey v1(?:\.|\b)') {
+            Write-Host $probeOutput.Trim()
+            throw "Resolved AutoHotkey executable probe reported the wrong runtime: $ahkPath"
+          }
+
+          $probeVersionMatch = [regex]::Match($probeOutput, '(?im)^\s*(?:AutoHotkey\s+)?v(?<major>\d+)\.')
+          if ($probeVersionMatch.Success -and $probeVersionMatch.Groups['major'].Value -ne '2') {
+            Write-Host $probeOutput.Trim()
+            throw "Resolved AutoHotkey executable probe did not report v2: $ahkPath"
+          }
+
           Split-Path -Parent $ahkPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           "REGRESSION_AHK_EXE=$ahkPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "Resolved AutoHotkey v2 at $ahkPath"
@@ -147,7 +161,17 @@ jobs:
             '(?im)Current interpreter:\s*AutoHotkey v1(?:\.|\b)',
             '(?im)\bAutoHotkey v1(?:\.|\b)'
           )
+          $requiredPatterns = @(
+            '(?im)^Resolved AutoHotkey v2 executable:\s+.+$'
+          )
           $logText = Get-Content -LiteralPath $logPath -Raw
+          foreach ($pattern in $requiredPatterns) {
+            if ($logText -notmatch $pattern) {
+              Write-Error "Regression log did not emit required AutoHotkey runtime evidence matching pattern: $pattern"
+              exit 1
+            }
+          }
+
           foreach ($pattern in $forbiddenPatterns) {
             if ($logText -match $pattern) {
               Write-Error "Regression log emitted forbidden AutoHotkey runtime text matching pattern: $pattern"

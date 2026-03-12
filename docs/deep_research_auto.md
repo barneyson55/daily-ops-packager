@@ -1,6 +1,6 @@
 # Deep Research — daily-ops-packager
 
-Updated: 2026-03-12 19:44 UTC
+Updated: 2026-03-12 23:06 UTC
 Scope of this pass: docs-only maintenance at the exact requested repo root `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager` (realpath resolves to `/mnt/c/CORE/daily-ops-packager`). No source-code changes.
 
 ## Sources reviewed
@@ -98,12 +98,13 @@ Consequence:
 
 ## Resulting prioritization
 
-1. Capture native Windows PASS evidence in `docs/headless_default_release_gate.md`, including scheduler audit when applicable.
-2. Add a hard CI guard that rejects future greens if `regression.log` shows wrong-runtime output or loses the explicit v2-resolution line.
-3. Refresh stale status docs after the next evidence-bearing change so they stop claiming the older failures/zero-artifacts state.
+1. Add a hard CI guard that rejects future greens if `regression.log` shows wrong-runtime output or loses the explicit v2-resolution line.
+2. Capture native Windows PASS evidence in `docs/headless_default_release_gate.md`, including scheduler audit when applicable.
+3. Refresh stale status docs so they stop claiming the older failures/zero-artifacts state while still preserving the native-Windows release blocker.
 
 ## Notes
 
 - This pass intentionally updated only `docs/ai_todo.md` and this research file.
 - The main backlog shift is real, not cosmetic: **CI recovery is no longer the top task** because fresh successful runs now exist and their artifacts look clean.
+- The second-order queue shift is about **actionability**: because autopilot executes the first unchecked top-level item, a native-Windows-only task should not sit in slot 1 while an agent-actionable repo task is still open.
 - No source-code changes were made in this maintenance pass.
