@@ -49,8 +49,16 @@ function Invoke-PowerShellStep {
   }
 
   Write-Host "==> $Name"
-  $output = & $script:PowerShellExe @argList 2>&1
-  $exitCode = $LASTEXITCODE
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = 'Continue'
+    $output = & $script:PowerShellExe @argList 2>&1
+    $exitCode = $LASTEXITCODE
+  }
+  finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
+
   $text = ($output | Out-String).Trim()
 
   if ($text) {
