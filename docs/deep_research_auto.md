@@ -1,12 +1,12 @@
 # Deep Research — daily-ops-packager
 
-Updated: 2026-03-12 06:53 UTC
+Updated: 2026-03-12 08:22 UTC
 Scope of this pass: repo status/docs review and `docs/ai_todo.md` reprioritization only. No source-code changes.
 
 ## Sources reviewed
 
 ### Local repo evidence
-- `git status --short`
+- `git status --short --branch`
 - `STATUS.md`
 - `docs/status.md`
 - `docs/critical_todo.md`
@@ -17,77 +17,78 @@ Scope of this pass: repo status/docs review and `docs/ai_todo.md` reprioritizati
   - `PENDING_REAL_RUN`
   - `SmokeTest.ps1`
   - `-Config config\app.ini`
-  - `TODO|FIXME|HACK|TBD`
 
 ## Findings from this pass
 
-### 1) The canonical docs surfaces exist and are still aligned
+### 1) The required status/docs surfaces all exist at the exact repo root
 Evidence:
 - `docs/status.md` exists.
 - `docs/critical_todo.md` exists.
 - `docs/ai_todo.md` exists.
 - `docs/deep_research_auto.md` exists.
-- `STATUS.md` and `docs/status.md` still tell the same release story: native Windows PASS evidence is the blocker; Windows CI already provides regression coverage plus uploaded artifacts.
 
 Consequence:
-- The queue does not need any path-discovery work.
-- `docs/ai_todo.md` should stay focused on the few remaining evidence tasks.
+- No path-discovery work is needed.
+- `docs/ai_todo.md` should stay focused on remaining evidence work, not file-hunting.
 
-### 2) The working tree is clean; the previous docs-only-change note was stale
+### 2) The working tree is clean at the exact repo root
 Evidence:
-- `git status --short` returned no tracked or untracked changes at `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager` before this docs refresh.
+- `git status --short --branch` returned `## master...origin/master` with no file entries at `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager` before this docs refresh.
 
 Consequence:
-- Remove the old evidence note that implied the repo still had pending docs-only changes.
-- Keep the queue tied to remaining engineering evidence, not to a no-longer-true working-tree snapshot.
+- There were no pre-existing repo changes to account for in this maintenance pass.
+- The queue can stay focused on engineering evidence instead of local workspace cleanup.
 
-### 3) The release blocker is unchanged: checked-in native Windows PASS evidence is still missing
+### 3) The checked-in release blocker is unchanged: native Windows PASS evidence is still missing
 Evidence:
 - `docs/headless_default_release_gate.md` is still `Status: **PENDING_REAL_RUN**`.
 - `docs/critical_todo.md` still lists native Windows PASS evidence as the only real blocker.
-- This WSL/OpenClaw session still cannot run the native Windows binaries needed for the final proof run.
+- The checked-in gate doc still says the final PASS capture must come from a native Windows terminal, not this WSL/OpenClaw session.
 
 Consequence:
-- The native Windows gate must stay visible in `docs/ai_todo.md`.
+- The native Windows gate must remain visible in `docs/ai_todo.md`.
 - It should remain below executable non-Windows work until a native Windows terminal is actually available.
 
-### 4) The old stale-doc cleanup item is no longer supported by current repo evidence
+### 4) The checked-in docs currently disagree about GitHub Actions artifact status
 Evidence:
-- `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md` now points to the safe default smoke test (`scripts\SmokeTest.ps1` with no `-Config`).
-- Repo-wide fixed-string search for `-Config config\app.ini` no longer shows a stale dated-doc cleanup target under `docs/`.
-- Remaining hits are intentional references in `README.md`, `docs/headless_default_release_gate.md`, or implementation text inside `scripts/CaptureHeadlessEvidence.ps1`.
+- `STATUS.md` and `docs/status.md` still say the latest checked runs were failing and that the repo currently had no stored Actions artifacts at the time of that status check.
+- `docs/critical_todo.md` says workflow artifacting is not a blocker.
+- This pass did **not** rerun `gh` commands, so the live GitHub state was not freshly re-verified here.
 
 Consequence:
-- Remove the old queue item about quarantining a remaining stale dated-doc smoke command.
-- Replace it with the next real gaps: live artifact verification and native Windows evidence capture.
+- `docs/ai_todo.md` should put a fresh live GitHub Actions reality check first.
+- The queue should describe the mismatch explicitly instead of pretending the checked-in docs are already fully aligned.
 
-### 5) Workflow artifacting is documented, but this pass still does not prove a live download
+### 5) The stale live-config smoke-command cleanup item is still not supported by current docs evidence
 Evidence:
-- Repo docs consistently state that `.github/workflows/windows-regression.yml` uploads `regression.log`, `regression-summary.md`, and `workflow-context.txt`.
-- This pass verified the docs and status alignment, but it did not download an artifact bundle from a completed GitHub Actions run.
+- Docs hits for `SmokeTest.ps1` still point to the safe default smoke path or to intentional gate/script references.
+- The prior dated-doc cleanup target under `docs/` is still not present as an active queue-worthy issue.
 
 Consequence:
-- Keep a concrete `gh run download` verification item at the top of `docs/ai_todo.md`.
-- That remains the highest-impact next check available from a non-Windows engineering environment.
+- Do not reintroduce a stale docs-cleanup item into `docs/ai_todo.md`.
+- Spend queue space on live evidence tasks only.
 
-### 6) The remaining work is better modeled as four evidence tasks plus one docs-reconciliation follow-up
+### 6) The queue is clearer when split into one executable GitHub check, one artifact-download proof, three Windows evidence tasks, and one docs-reconciliation follow-up
 Evidence:
-- The final blocker (`PASS` in `docs/headless_default_release_gate.md`) is actually downstream of at least three distinct steps: a safe-first native capture, optional scheduler proof, and the PASS-grade observed rerun.
-- The status docs will also need a follow-up refresh immediately after fresh evidence lands.
+- The first actionable task in the current environment is a GitHub Actions status/artifact re-check.
+- The native Windows gate still requires at least a safe-first capture, optional scheduler proof, and a final PASS-grade rerun.
+- Status docs will need another refresh immediately after fresh evidence lands.
 
 Consequence:
-- Expand `docs/ai_todo.md` from two open items to five so the next actions are concrete, ordered, and individually verifiable.
+- Keep six open items in `docs/ai_todo.md`.
+- Order them by practical execution path, not just by theoretical severity.
 
 ## Resulting prioritization
 
-1. Verify one real Windows regression artifact bundle end-to-end from GitHub Actions.
-2. Run the safe-first native Windows evidence capture and preserve the generated transcript.
-3. Capture scheduler proof for `OneClickBackupDaily` if that task exists.
-4. Close the headless-default release gate with PASS-grade native Windows evidence.
-5. Reconcile current-status docs immediately after new live evidence lands.
+1. Re-check live GitHub Actions health for `windows-regression.yml` and resolve artifact-status drift.
+2. Download and inspect one real Windows regression artifact bundle end-to-end once a green run exists.
+3. Run the safe-first native Windows evidence capture and preserve the generated transcript.
+4. Capture scheduler proof for `OneClickBackupDaily` if that task exists.
+5. Close the headless-default release gate with PASS-grade native Windows evidence.
+6. Reconcile status surfaces immediately after fresh live evidence lands.
 
 ## Notes
 
 - This pass intentionally made docs-only maintenance changes.
-- The main queue correction here was removing stale assumptions, not inventing new backlog.
-- If a future pass downloads a live artifact bundle or obtains native Windows PASS evidence, reprioritize immediately.
+- The main queue correction here was reprioritizing around a checked-in docs mismatch, not inventing new backlog.
+- No source-code changes were made in this maintenance pass.

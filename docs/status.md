@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-03-12 (UTC)
+Last updated: 2026-03-12 08:29 UTC
 
 This is the canonical repo status summary. It explains what the automated Windows regression proves, what still requires manual native-Windows evidence, and which follow-up items remain.
 
@@ -61,10 +61,11 @@ The workflow is designed to upload a downloadable artifact bundle containing:
 - `regression-summary.md` — a durable scope statement for what the CI run proves and what it does not prove
 - `workflow-context.txt` — run metadata that helps reviewers tie the artifact bundle to a specific workflow execution
 
-But the latest checked runs are all failing before that can be verified end-to-end. Fresh repo-root checks show:
+But the latest checked runs are all failing before that can be verified end-to-end. Fresh repo-root checks at **2026-03-12 08:29 UTC** show:
 
 - `gh run list --workflow windows-regression.yml --limit 8` returns only `failure` conclusions in the latest sample.
-- `gh run view 22989319342` reports: `This run likely failed because of a workflow file issue.`
+- `gh run view 22991617584` reports: `This run likely failed because of a workflow file issue.`
+- `gh run view 22989319342` reports the same workflow-file failure on the prior sampled run.
 - `gh api repos/barneyson55/daily-ops-packager/actions/artifacts` currently returns `{"total_count":0,"artifacts":[]}`.
 
 So downloadable workflow artifacts are part of the intended release story, but **no live artifact bundle is currently available to verify**. This needs a green workflow run before the artifact-download claim can be treated as freshly proven.
