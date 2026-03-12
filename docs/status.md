@@ -11,7 +11,7 @@ This is the canonical repo status summary. It explains what the automated Window
   - the static headless-default guard (`scripts\CheckHeadlessDefault.ps1`)
   - readiness/prereq checks against fixture configs (`scripts\CheckPrereqs.ps1`)
   - the safe default smoke path (`scripts\SmokeTest.ps1` with no `-Config`, which uses the repo-local readiness fixture)
-- **What CI now publishes for reviewers:** every workflow run uploads a durable artifact bundle with:
+- **What CI is intended to publish for reviewers:** each successful `windows-regression.yml` run should upload a durable artifact bundle with:
   - `regression.log`
   - `regression-summary.md`
   - `workflow-context.txt`
@@ -53,17 +53,21 @@ That automated path is useful for catching drift in:
 
 It should be treated as **regression confidence**, not as final release proof for the no-dialog claim.
 
-### 3. Downloadable workflow artifacts now exist
+### 3. Live artifact verification is currently blocked
 
-Reviewers no longer need to rely only on console logs from the workflow UI.
-
-Each Windows regression run now uploads a downloadable artifact bundle containing:
+The workflow is designed to upload a downloadable artifact bundle containing:
 
 - `regression.log` — the captured workflow-side regression transcript
 - `regression-summary.md` — a durable scope statement for what the CI run proves and what it does not prove
 - `workflow-context.txt` — run metadata that helps reviewers tie the artifact bundle to a specific workflow execution
 
-This improves reviewability and release-note linking, but it does **not** replace the native Windows PASS gate.
+But the latest checked runs are all failing before that can be verified end-to-end. Fresh repo-root checks show:
+
+- `gh run list --workflow windows-regression.yml --limit 8` returns only `failure` conclusions in the latest sample.
+- `gh run view 22989319342` reports: `This run likely failed because of a workflow file issue.`
+- `gh api repos/barneyson55/daily-ops-packager/actions/artifacts` currently returns `{"total_count":0,"artifacts":[]}`.
+
+So downloadable workflow artifacts are part of the intended release story, but **no live artifact bundle is currently available to verify**. This needs a green workflow run before the artifact-download claim can be treated as freshly proven.
 
 ### 4. Smoke-command guidance is now quarantined correctly
 
@@ -75,11 +79,11 @@ The remaining dated planning-doc hit in `docs/aspm_sellable_delivery_scope_2026-
 
 If someone asks "are we release-ready?", the accurate answer is:
 
-1. **Partially.** The repo has automated Windows regression, downloadable CI artifact bundles, and the headless-evidence capture tooling.
+1. **Partially.** The repo has the Windows regression workflow definition and the headless-evidence capture tooling.
 2. **Not fully proven yet.** The checked-in native Windows PASS artifact is still missing.
-3. **So the current blocker is native evidence, not missing workflow artifacting.**
+3. **Also not freshly verified:** the workflow artifact-download story is currently blocked because the latest Actions runs fail with a workflow-file issue and the repo currently has zero stored Actions artifacts.
 
 ## Next work in order
 
-1. **GitHub Actions verification:** download one real `windows-regression.yml` artifact bundle and confirm it contains `regression.log`, `regression-summary.md`, and `workflow-context.txt`.
+1. **GitHub Actions repair + verification:** restore one successful `windows-regression.yml` run, then download its artifact bundle and confirm it contains `regression.log`, `regression-summary.md`, and `workflow-context.txt`.
 2. **Manual/native Windows:** close `docs\headless_default_release_gate.md` with PASS evidence.
