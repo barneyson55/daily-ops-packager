@@ -14,5 +14,5 @@ Last triage: 2026-03-12 (UTC)
 - **What still needs native Windows evidence:** direct proof that the default path stays headless unless `--interactive` is passed, plus local scheduled-task audit/proof when applicable.
 
 ## Next work in order
-1. Close the native Windows PASS evidence gate in `docs/headless_default_release_gate.md`.
-2. Sweep stale smoke-command guidance so `scripts\SmokeTest.ps1 -Config config\app.ini` appears only as explicit opt-in or clearly historical context.
+1. Verify one real Windows regression artifact bundle end-to-end from GitHub Actions.
+2. Close the native Windows PASS evidence gate in `docs/headless_default_release_gate.md`.

@@ -38,5 +38,5 @@ Package the automation workflow as a scoped deliverable with preflight checks an
 - DAILY_ZIP_PASS
 - DAILY_SMTP_PASS (only if email is enabled)
 - src\OneClickBackup.ahk --config config\app.ini --dry-run
-- or use the smoke test script: scripts\SmokeTest.ps1 -Config config\app.ini
+- or use the safe default smoke test script: powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1
 - src\OneClickBackup.ahk --config config\app.ini

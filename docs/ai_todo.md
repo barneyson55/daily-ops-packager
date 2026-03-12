@@ -3,22 +3,22 @@
 Autopilot executes the first unchecked **top-level** item (`- [ ]`).
 Keep this file short, current, and evidence-driven.
 
-Last reprioritized: 2026-03-12 04:22 UTC.
+Last reprioritized: 2026-03-12 05:31 UTC.
 
 ## Current evidence snapshot
 
 - Verified in this pass: `docs/status.md`, `docs/critical_todo.md`, `docs/ai_todo.md`, and `docs/deep_research_auto.md` all exist.
-- `git status --short` currently shows one unrelated untracked docs file: `docs/research_handoff.md`. Leave it untouched unless a later pass explicitly scopes it in.
-- `STATUS.md` and `docs/status.md` agree on the release story: `.github/workflows/windows-regression.yml` already runs `scripts\Regression.ps1` on `windows-latest`, uploads `regression.log`, `regression-summary.md`, and `workflow-context.txt`, and does **not** replace native Windows release proof.
+- `git status --short` now shows docs-only changes for this milestone in `STATUS.md`, `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md`, `docs/ai_todo.md`, and `docs/status.md`.
+- `STATUS.md` and `docs/status.md` still agree on the release story: `.github/workflows/windows-regression.yml` runs `scripts\Regression.ps1` on `windows-latest`, uploads `regression.log`, `regression-summary.md`, and `workflow-context.txt`, and does **not** replace native Windows release proof.
 - `docs/headless_default_release_gate.md` is still `Status: **PENDING_REAL_RUN**`, so checked-in native Windows PASS evidence remains the main release-confidence blocker.
-- Repo-wide reference checks now show one remaining docs cleanup surface:
-  - stale live-config smoke guidance: `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md` still contains `scripts\SmokeTest.ps1 -Config config\app.ini`
-- `scripts/VerifyNonInteractiveDefault.ps1` is now only a thin compatibility wrapper around `scripts/CheckHeadlessDefault.ps1`, so the canonical static guard lives in one maintained script.
-- This WSL/OpenClaw session cannot run the native Windows binaries needed for the final PASS capture, and it cannot prove a live GitHub Actions artifact upload end-to-end from local shell alone.
+- Repo-wide fixed-string search for `-Config config\app.ini` no longer finds copy-pasteable live-config smoke guidance in dated planning docs:
+  - `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md` now points to the safe no-argument smoke command
+  - remaining hits are explicit opt-in guidance, status notes, or historical research/queue docs
+- This WSL/OpenClaw session cannot run the native Windows binaries needed for the final PASS capture, and it cannot independently prove a live GitHub Actions artifact download end-to-end from local shell alone.
 
 ## Queueing rule for this file
 
-- Lead with the highest-impact work that current automation can actually complete.
+- Lead with the highest-impact work that a normal engineering environment can actually complete.
 - Keep the blocked/manual release gate visible, but do **not** leave it as the first unchecked item unless a native Windows terminal is available.
 - Keep the top-level open queue short (target 3-7 items when there is enough justified work).
 
@@ -34,17 +34,24 @@ Last reprioritized: 2026-03-12 04:22 UTC.
   - Repo docs now explain what those artifacts prove and what they do not prove.
   - Remaining gap: this session could not verify a live GitHub Actions run end-to-end.
 
+- [x] **P1 — Quarantine the remaining stale live-config smoke command in dated docs**
+  - `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md` now uses the safe no-argument smoke path instead of the copy-pasteable live-config smoke command.
+  - `rg -n --fixed-strings -- "-Config config\\app.ini" README.md STATUS.md docs` no longer shows that dated planning doc as a remaining hit.
+  - Remaining `-Config config\app.ini` references are explicit opt-in guidance, status notes, or clearly historical research/queue docs.
+
 ## Prioritized open items
 
-- [ ] **P2 — Remove or clearly quarantine stale `-Config config\app.ini` smoke guidance in dated docs**
-  - **Why now:** this is now the highest-impact unblocked cleanup item. The currently confirmed docs hit is `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md`.
+- [ ] **P2 — Verify one real Windows regression artifact bundle end-to-end from GitHub Actions**
+  - **Why first:** repo docs now rely on the claim that workflow runs publish durable reviewer artifacts, but this local pass only proves the workflow/docs wiring, not a real downloadable bundle from a completed run.
   - **Deliverables:**
-    - Replace copy-pasteable live-config smoke guidance in dated docs with the safe no-argument smoke path, or label it clearly as historical/non-canonical.
-    - Keep `-Config config\app.ini` examples only where live/local config use is the explicit point.
+    - Download the latest successful `windows-regression.yml` artifact bundle.
+    - Confirm it contains `regression.log`, `regression-summary.md`, and `workflow-context.txt`.
+    - If the live artifact shape differs from docs, feed that mismatch back into the status docs and this queue.
   - **Verification:**
-    - `rg -n "SmokeTest\\.ps1" README.md STATUS.md docs`
-    - `rg -n "SmokeTest\\.ps1 -Config config\\\\app\\.ini" README.md STATUS.md docs`
-    - Human review confirms every remaining `-Config config\app.ini` example is clearly opt-in or historical.
+    - `gh run list --workflow windows-regression.yml --limit 5`
+    - `gh run download <run-id> --dir tmp/windows-regression-artifact`
+    - `test -f tmp/windows-regression-artifact/regression.log && test -f tmp/windows-regression-artifact/regression-summary.md && test -f tmp/windows-regression-artifact/workflow-context.txt`
+  - **Current blocker:** requires GitHub CLI access/auth plus network access to Actions artifacts.
 
 - [ ] **BLOCKED MANUAL — Close the headless-default release gate with native Windows PASS evidence**
   - **Why second:** this is still the biggest release-confidence task, but it cannot be executed from the current WSL/OpenClaw session.
@@ -62,6 +69,6 @@ Last reprioritized: 2026-03-12 04:22 UTC.
 
 ## Notes
 
-- The first unchecked item remains executable from a normal engineering environment.
+- The first unchecked item remains executable from a normal engineering environment without touching source code.
 - The native Windows PASS capture stays visible because it is still the main release blocker.
-- The queue is intentionally capped at three open items until new evidence changes the release story.
+- The queue is intentionally capped at two open items because only two evidence-backed priorities remain right now.

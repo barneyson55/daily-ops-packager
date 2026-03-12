@@ -65,11 +65,11 @@ Each Windows regression run now uploads a downloadable artifact bundle containin
 
 This improves reviewability and release-note linking, but it does **not** replace the native Windows PASS gate.
 
-### 4. Smoke-command guidance is mostly corrected
+### 4. Smoke-command guidance is now quarantined correctly
 
 Canonical docs now default to the safe no-argument smoke path and keep `-Config config\app.ini` as explicit opt-in for live/local testing.
 
-At least one dated planning document still contains the older copy-pasteable live-config smoke command, so a cleanup sweep is still queued.
+The remaining dated planning-doc hit in `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md` has been replaced with the safe default smoke command, so the old live-config smoke form is no longer presented there as copy-pasteable guidance.
 
 ## What to tell a reviewer today
 
@@ -81,5 +81,5 @@ If someone asks "are we release-ready?", the accurate answer is:
 
 ## Next work in order
 
-1. **Manual/native Windows:** close `docs\headless_default_release_gate.md` with PASS evidence.
-2. **Docs cleanup:** remove or clearly mark stale `scripts\SmokeTest.ps1 -Config config\app.ini` guidance outside explicit opt-in or historical contexts.
+1. **GitHub Actions verification:** download one real `windows-regression.yml` artifact bundle and confirm it contains `regression.log`, `regression-summary.md`, and `workflow-context.txt`.
+2. **Manual/native Windows:** close `docs\headless_default_release_gate.md` with PASS evidence.

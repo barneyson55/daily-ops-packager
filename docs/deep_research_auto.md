@@ -1,39 +1,49 @@
 # Deep Research — daily-ops-packager
 
-Updated: 2026-03-12 04:22 UTC
-Scope of this pass: local repo evidence plus one minimal source-compatible guard-consolidation change.
+Updated: 2026-03-12 05:27 UTC
+Scope of this pass: repo status/docs review and `docs/ai_todo.md` reprioritization only. No source-code changes.
 
 ## Sources reviewed
 
 ### Local repo evidence
 - `git status --short`
 - `STATUS.md`
+- `README.md`
 - `docs/status.md`
 - `docs/critical_todo.md`
 - `docs/ai_todo.md` (pre-refresh)
 - `docs/deep_research_auto.md` (pre-refresh)
 - `docs/headless_default_release_gate.md`
 - `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md`
-- repo-wide reference checks for:
-  - `VerifyNonInteractiveDefault`
-  - `CheckHeadlessDefault`
+- repo-wide docs searches for:
+  - `-Config config\app.ini`
   - `SmokeTest.ps1`
   - `PENDING_REAL_RUN`
 
 ## Findings from this pass
 
-### 1) The canonical status docs exist and are aligned
+### 1) The canonical status docs exist and are still aligned
 Evidence:
 - `docs/status.md` exists.
 - `docs/critical_todo.md` exists.
 - `docs/ai_todo.md` exists.
-- `STATUS.md` and `docs/status.md` tell the same release story: native Windows PASS evidence is the blocker; Windows CI already provides regression coverage plus uploaded artifacts.
+- `docs/deep_research_auto.md` exists.
+- `STATUS.md` and `docs/status.md` still tell the same release story: native Windows PASS evidence is the blocker; Windows CI already provides regression coverage plus uploaded artifacts.
 
 Consequence:
-- The queue does not need any "create/fix missing status docs" work.
-- The next AI TODO ordering should focus on actual remaining engineering work, not doc existence cleanup.
+- The queue does not need any doc-existence or path-discovery work.
+- `docs/ai_todo.md` should stay focused on actual remaining engineering work.
 
-### 2) The release blocker is unchanged: native Windows PASS evidence is still missing
+### 2) The working tree is clean; the old untracked-doc note is stale
+Evidence:
+- `git status --short` returned no tracked or untracked changes during this pass.
+- The previous `docs/ai_todo.md` / `docs/deep_research_auto.md` note about `docs/research_handoff.md` being untracked no longer matches current repo state.
+
+Consequence:
+- Remove the stale untracked-file note from current evidence summaries.
+- Do not add cleanup work for `docs/research_handoff.md` unless a future pass produces new evidence.
+
+### 3) The release blocker is unchanged: native Windows PASS evidence is still missing
 Evidence:
 - `docs/headless_default_release_gate.md` is still `Status: **PENDING_REAL_RUN**`.
 - `docs/critical_todo.md` still lists native Windows PASS evidence as the only real blocker.
@@ -41,42 +51,34 @@ Evidence:
 
 Consequence:
 - The native Windows gate must stay visible in `docs/ai_todo.md`.
-- It should remain below the first unchecked item until a native Windows terminal is actually available.
+- It should remain below executable non-Windows work until a native Windows terminal is actually available.
 
-### 3) The duplicate-guard consolidation is now complete
+### 4) The remaining docs drift is narrow and concrete
 Evidence:
-- Repo automation and release-facing docs already reference `scripts\CheckHeadlessDefault.ps1` as the canonical headless-default guard.
-- `scripts/VerifyNonInteractiveDefault.ps1` now exists only as a thin compatibility wrapper that delegates to `scripts\CheckHeadlessDefault.ps1`.
-- This removes the separate maintained static-guard implementation that could have drifted away from CI and evidence capture.
+- Explicit opt-in `-Config config\app.ini` references remain in canonical places where that distinction is intentional, including `README.md` and `docs/headless_default_release_gate.md`.
+- The confirmed remaining stale dated-doc hit under `docs/` is `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md`, which still presents `scripts\SmokeTest.ps1 -Config config\app.ini` in copy-pasteable form.
 
 Consequence:
-- The next unchecked AI TODO item should move to the remaining stale smoke-guidance cleanup.
-- Guard maintenance now lives in one canonical script.
+- The top open AI TODO item should remain a focused cleanup of that dated-doc command guidance.
+- There is no evidence right now that a broader docs rewrite is needed.
 
-### 4) The remaining docs-drift task is now narrow and concrete
+### 5) Workflow artifacting is documented, but this pass still does not prove a live download
 Evidence:
-- Current repo-wide smoke-command searches no longer show stale live-config guidance in `README.md`, `STATUS.md`, or `docs/status.md`.
-- The confirmed remaining dated-doc hit is `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md`, which still says `scripts\SmokeTest.ps1 -Config config\app.ini` in copy-pasteable form.
+- Repo docs consistently state that `.github/workflows/windows-regression.yml` uploads `regression.log`, `regression-summary.md`, and `workflow-context.txt`.
+- This local pass verified the docs and workflow references, but it did not download an artifact bundle from a completed GitHub Actions run.
 
 Consequence:
-- The smoke-guidance cleanup item should stay open, but narrowed to the specific remaining stale references.
-- It should rank as the next unchecked AI TODO item because it is the highest-impact remaining work current automation can still complete.
-
-### 5) Repo status is not fully clean, but the extra docs file is out of scope for this queue refresh
-Evidence:
-- `git status --short` shows untracked `docs/research_handoff.md`.
-
-Consequence:
-- Note it in the evidence snapshot so future passes are not surprised.
-- Do not add it to `docs/ai_todo.md` unless a later task explicitly scopes that file in.
+- Add a concrete follow-up item to verify one live artifact bundle end-to-end with `gh` when auth/network access is available.
+- Keep that item ahead of the manual native-Windows gate because it is still executable from a normal engineering environment.
 
 ## Resulting prioritization
 
-1. Remove or clearly quarantine the remaining stale `-Config config\app.ini` smoke guidance in dated docs.
-2. Keep the native Windows PASS evidence task visible as a blocked manual release gate.
+1. Quarantine the remaining stale `scripts\SmokeTest.ps1 -Config config\app.ini` guidance in dated docs.
+2. Verify one real Windows regression artifact bundle end-to-end from GitHub Actions.
+3. Keep the native Windows PASS evidence task visible as the blocked manual release gate.
 
 ## Notes
 
-- The previously open workflow-artifact task stays completed; this pass did not reopen it.
-- This refresh intentionally keeps the queue capped at a small number of open items so it remains short and continuously actionable.
-- This pass intentionally changed one source-adjacent script surface: the legacy guard entrypoint is now only a compatibility wrapper.
+- This pass intentionally made docs-only maintenance changes.
+- The queue stays capped at three open items because only three evidence-backed priorities remain right now.
+- If a future pass downloads a live artifact bundle or obtains native Windows evidence, reprioritize immediately.
