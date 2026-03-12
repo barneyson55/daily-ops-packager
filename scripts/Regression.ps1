@@ -30,7 +30,8 @@ function Invoke-PowerShellStep {
     [string]$ScriptPath,
     [hashtable]$Arguments = @{},
     [int]$ExpectedExitCode = 0,
-    [string[]]$ExpectedOutput = @()
+    [string[]]$ExpectedOutput = @(),
+    [string[]]$ForbiddenOutput = @()
   )
 
   if (-not (Test-Path -LiteralPath $ScriptPath -PathType Leaf)) {
@@ -74,6 +75,12 @@ function Invoke-PowerShellStep {
       throw "Step '$Name' did not emit expected text: $expected"
     }
   }
+
+  foreach ($forbidden in $ForbiddenOutput) {
+    if ($forbidden -and $text -match $forbidden) {
+      throw "Step '$Name' emitted forbidden text matching pattern: $forbidden"
+    }
+  }
 }
 
 $originalZipPass = [Environment]::GetEnvironmentVariable('READINESS_ZIP_PASS', 'Process')
@@ -98,10 +105,16 @@ try {
     $defaultSmokeArgs['AhkExe'] = $AhkExe
   }
 
+  $forbiddenWrongRuntimePatterns = @(
+    '(?im)This script requires AutoHotkey v2\.0\.',
+    '(?im)Current interpreter:\s*AutoHotkey v1(?:\.|\b)',
+    '(?im)\bAutoHotkey v1(?:\.|\b)'
+  )
+
   Invoke-PowerShellStep -Name 'Dry-run smoke path (literal no-arg default)' -ScriptPath $smokeScript -Arguments $defaultSmokeArgs -ExpectedOutput @(
     "Using repo-local readiness fixture: $passConfig",
     'Smoke test OK.'
-  )
+  ) -ForbiddenOutput $forbiddenWrongRuntimePatterns
 
   if (($SmokeConfig -replace '/', '\') -ine ($passConfig -replace '/', '\')) {
     $smokeArgs = @{ Config = $SmokeConfig }
@@ -109,7 +122,7 @@ try {
       $smokeArgs['AhkExe'] = $AhkExe
     }
 
-    Invoke-PowerShellStep -Name 'Dry-run smoke path (explicit config override)' -ScriptPath $smokeScript -Arguments $smokeArgs -ExpectedOutput 'Smoke test OK.'
+    Invoke-PowerShellStep -Name 'Dry-run smoke path (explicit config override)' -ScriptPath $smokeScript -Arguments $smokeArgs -ExpectedOutput 'Smoke test OK.' -ForbiddenOutput $forbiddenWrongRuntimePatterns
   }
 
   Write-Host 'Regression suite OK.'

@@ -138,6 +138,19 @@ jobs:
             exit $LASTEXITCODE
           }
 
+          $forbiddenPatterns = @(
+            '(?im)This script requires AutoHotkey v2\.0\.',
+            '(?im)Current interpreter:\s*AutoHotkey v1(?:\.|\b)',
+            '(?im)\bAutoHotkey v1(?:\.|\b)'
+          )
+          $logText = Get-Content -LiteralPath $logPath -Raw
+          foreach ($pattern in $forbiddenPatterns) {
+            if ($logText -match $pattern) {
+              Write-Error "Regression log emitted forbidden AutoHotkey runtime text matching pattern: $pattern"
+              exit 1
+            }
+          }
+
       - name: Write regression artifact summary
         if: always()
         shell: powershell
