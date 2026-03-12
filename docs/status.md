@@ -11,11 +11,14 @@ This is the canonical repo status summary. It explains what the automated Window
   - the static headless-default guard (`scripts\CheckHeadlessDefault.ps1`)
   - readiness/prereq checks against fixture configs (`scripts\CheckPrereqs.ps1`)
   - the safe default smoke path (`scripts\SmokeTest.ps1` with no `-Config`, which uses the repo-local readiness fixture)
-- **What CI does not yet prove:**
+- **What CI now publishes for reviewers:** every workflow run uploads a durable artifact bundle with:
+  - `regression.log`
+  - `regression-summary.md`
+  - `workflow-context.txt`
+- **What CI still does not prove:**
   - direct observation on a native Windows desktop that the default path stays headless unless `--interactive` is passed
   - PASS-grade durable evidence in `docs\headless_default_release_gate.md`
   - local scheduled-task action audit and optional observed scheduled-task headless behavior for `OneClickBackupDaily`
-- **Current review-surface gap:** the Windows regression workflow is still console-only; it does not yet publish durable downloadable artifacts for reviewers.
 
 ## Evidence surfaces
 
@@ -23,8 +26,8 @@ This is the canonical repo status summary. It explains what the automated Window
 - `docs/status.md` — this canonical status explanation
 - `docs/critical_todo.md` — only the current real blockers
 - `docs/headless_default_release_gate.md` — durable native-Windows headless gate artifact
-- `.github/workflows/windows-regression.yml` — automated Windows regression entrypoint
-- `scripts\Regression.ps1` — regression suite currently executed by GitHub Actions
+- `.github/workflows/windows-regression.yml` — automated Windows regression entrypoint and artifact publisher
+- `scripts\Regression.ps1` — regression suite executed by GitHub Actions
 
 ## Current state
 
@@ -50,11 +53,17 @@ That automated path is useful for catching drift in:
 
 It should be treated as **regression confidence**, not as final release proof for the no-dialog claim.
 
-### 3. Durable workflow artifacts are still missing
+### 3. Downloadable workflow artifacts now exist
 
-Reviewers currently get pass/fail console logs from the workflow run, but no durable artifact bundle to link from docs or release notes.
+Reviewers no longer need to rely only on console logs from the workflow UI.
 
-That is the next best unblocked engineering follow-up after the status-doc cleanup.
+Each Windows regression run now uploads a downloadable artifact bundle containing:
+
+- `regression.log` — the captured workflow-side regression transcript
+- `regression-summary.md` — a durable scope statement for what the CI run proves and what it does not prove
+- `workflow-context.txt` — run metadata that helps reviewers tie the artifact bundle to a specific workflow execution
+
+This improves reviewability and release-note linking, but it does **not** replace the native Windows PASS gate.
 
 ### 4. Smoke-command guidance is mostly corrected
 
@@ -66,12 +75,12 @@ At least one dated planning document still contains the older copy-pasteable liv
 
 If someone asks "are we release-ready?", the accurate answer is:
 
-1. **Partially.** The repo has automated Windows regression and the headless-evidence capture tooling.
+1. **Partially.** The repo has automated Windows regression, downloadable CI artifact bundles, and the headless-evidence capture tooling.
 2. **Not fully proven yet.** The checked-in native Windows PASS artifact is still missing.
-3. **So the current blocker is evidence, not missing capture code.**
+3. **So the current blocker is native evidence, not missing workflow artifacting.**
 
 ## Next work in order
 
 1. **Manual/native Windows:** close `docs\headless_default_release_gate.md` with PASS evidence.
-2. **Unblocked automation/docs:** make `.github/workflows/windows-regression.yml` publish durable review artifacts.
-3. **Cleanup:** remove or clearly mark stale `scripts\SmokeTest.ps1 -Config config\app.ini` guidance outside explicit opt-in or historical contexts.
+2. **Unblocked engineering cleanup:** collapse the duplicate static guard surface so `scripts\CheckHeadlessDefault.ps1` is the only canonical guard.
+3. **Docs cleanup:** remove or clearly mark stale `scripts\SmokeTest.ps1 -Config config\app.ini` guidance outside explicit opt-in or historical contexts.

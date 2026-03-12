@@ -19,6 +19,8 @@ jobs:
   regression:
     runs-on: windows-latest
     timeout-minutes: 15
+    env:
+      REGRESSION_ARTIFACT_DIR: ${{ runner.temp }}/windows-regression-artifacts
 
     steps:
       - name: Check out repository
@@ -40,6 +42,70 @@ jobs:
 
           Write-Host "Resolved AutoHotkey at $($ahk.Source)"
 
-      - name: Run regression suite
+      - name: Prepare regression artifact directory
         shell: powershell
-        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Regression.ps1
+        run: |
+          if (Test-Path -LiteralPath $env:REGRESSION_ARTIFACT_DIR) {
+            Remove-Item -LiteralPath $env:REGRESSION_ARTIFACT_DIR -Recurse -Force
+          }
+
+          New-Item -ItemType Directory -Path $env:REGRESSION_ARTIFACT_DIR -Force | Out-Null
+
+      - name: Run regression suite
+        id: regression
+        shell: powershell
+        run: |
+          $logPath = Join-Path $env:REGRESSION_ARTIFACT_DIR 'regression.log'
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Regression.ps1 *>&1 | Tee-Object -FilePath $logPath
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
+      - name: Write regression artifact summary
+        if: always()
+        shell: powershell
+        env:
+          REGRESSION_OUTCOME: ${{ steps.regression.outcome }}
+        run: |
+          $summaryPath = Join-Path $env:REGRESSION_ARTIFACT_DIR 'regression-summary.md'
+          $contextPath = Join-Path $env:REGRESSION_ARTIFACT_DIR 'workflow-context.txt'
+          $runUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+
+          @(
+            '# Windows regression artifact summary',
+            '',
+            "- Outcome: $env:REGRESSION_OUTCOME",
+            "- Repository: $env:GITHUB_REPOSITORY",
+            "- Ref: $env:GITHUB_REF",
+            "- Commit: $env:GITHUB_SHA",
+            "- Event: $env:GITHUB_EVENT_NAME",
+            "- Workflow: $env:GITHUB_WORKFLOW",
+            "- Run: $env:GITHUB_RUN_NUMBER (attempt $env:GITHUB_RUN_ATTEMPT)",
+            "- Run URL: $runUrl",
+            '',
+            '## What this artifact proves',
+            '- `scripts\Regression.ps1` ran on `windows-latest`.',
+            '- The static headless-default guard passed.',
+            '- Fixture-backed prereq checks passed, including expected failure fixtures.',
+            '- The safe smoke path was exercised with the repo-local readiness fixture by default.',
+            '',
+            '## What this artifact does not prove',
+            '- It is not direct observation on a native Windows desktop.',
+            '- It does not replace PASS-grade evidence in `docs\headless_default_release_gate.md`.',
+            '- It does not prove local scheduled-task behavior for `OneClickBackupDaily`.'
+          ) | Set-Content -Path $summaryPath -Encoding UTF8
+
+          @(
+            "artifact_dir=$env:REGRESSION_ARTIFACT_DIR",
+            "outcome=$env:REGRESSION_OUTCOME",
+            "run_url=$runUrl"
+          ) | Set-Content -Path $contextPath -Encoding UTF8
+
+      - name: Upload regression artifact bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-regression-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.REGRESSION_ARTIFACT_DIR }}
+          if-no-files-found: error
+          retention-days: 30

@@ -13,6 +13,7 @@ Small Windows automation that collects today's files from a watch directory, cop
    - headless/default: `src\OneClickBackup.ahk --config config\app.ini --dry-run`
    - manual desktop feedback: `src\OneClickBackup.ahk --config config\app.ini --dry-run --interactive`
    - canonical repo-local regression: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Regression.ps1`
+   - GitHub Actions Windows regression runs now upload a downloadable artifact bundle with `regression.log`, `regression-summary.md`, and `workflow-context.txt`
    - static check for the headless default: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
    - fixture-backed smoke test default: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1`
    - smoke test against your real/local config only when you mean it: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1 -Config config\app.ini`
@@ -66,6 +67,7 @@ Small Windows automation that collects today's files from a watch directory, cop
 - The generated evidence now includes runtime context plus the latest `logs\backup_YYYYMMDD.log` tail alongside the headless guard, smoke-test, summary, and optional scheduler proof/action audit.
 - PASS-grade observation flags now require `-ObservedBy "YourName"` so the artifact records who directly confirmed the headless behavior.
 - In `-Mode Pass`, the wrapper now auto-runs `scripts\AssertHeadlessReleaseGate.ps1` against the same output path, so the command fails immediately if the evidence doc is still not PASS-grade.
+- The GitHub Actions Windows regression workflow now also uploads a durable artifact bundle (`regression.log`, `regression-summary.md`, `workflow-context.txt`) for review/reference, but that CI artifact does **not** replace the native Windows PASS gate in `docs\headless_default_release_gate.md`.
 
 ## Notes
 - No secrets are stored in the repo; use environment variables.
