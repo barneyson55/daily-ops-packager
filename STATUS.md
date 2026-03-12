@@ -1,17 +1,18 @@
 # STATUS
 
-Last triage: 2026-02-15 (UTC)
+Last triage: 2026-03-12 (UTC)
 
-## Stack
-- AutoHotkey v2 automation (`src/*.ahk`)
-- PowerShell helper scripts (`scripts/*.ps1`)
-- External tools: 7-Zip CLI, rclone, SMTP relay
+## Canonical status surfaces
+- `docs/status.md` — current release story and evidence boundaries
+- `docs/critical_todo.md` — only the real blockers
+- `docs/headless_default_release_gate.md` — durable native-Windows gate artifact
 
-## Runnable check
-- Command:
-  - `python3` INI sanity check on `config/app.sample.ini` (required sections + keys)
-- Result:
-  - ✅ PASS (`app.sample.ini` structure is valid for required fields)
+## Current release story
+- **Main release blocker:** `docs/headless_default_release_gate.md` is still `Status: **PENDING_REAL_RUN**`.
+- **Automated coverage that already exists:** `.github/workflows/windows-regression.yml` runs `scripts\Regression.ps1` on `windows-latest` and covers the static headless guard, fixture-backed prereq checks, and the safe default smoke path.
+- **What still needs native Windows evidence:** direct proof that the default path stays headless unless `--interactive` is passed, plus local scheduled-task audit/proof when applicable.
 
-## First top-level task
-- Implement installer packaging + prerequisite checks (MSIX/Inno Setup path) to move from script bundle to reproducible end-user install.
+## Next work in order
+1. Close the native Windows PASS evidence gate in `docs/headless_default_release_gate.md`.
+2. Make the Windows regression workflow publish durable review artifacts.
+3. Sweep stale smoke-command guidance so `scripts\SmokeTest.ps1 -Config config\app.ini` appears only as explicit opt-in or clearly historical context.

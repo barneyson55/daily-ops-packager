@@ -3,7 +3,7 @@
 Autopilot executes the first unchecked **top-level** item (`- [ ]`).
 Keep this file short, current, and evidence-driven.
 
-Last reprioritized: 2026-03-12 01:25 UTC.
+Last reprioritized: 2026-03-12 02:33 UTC.
 
 ## Current evidence snapshot
 
@@ -14,35 +14,27 @@ Last reprioritized: 2026-03-12 01:25 UTC.
   - `docs/ai_todo.md` → **present**
   - `docs/deep_research_auto.md` → **present**
 - `docs/headless_default_release_gate.md` is still `Status: **PENDING_REAL_RUN**`, so checked-in native Windows PASS evidence is still the main release-confidence gap.
+- This WSL/OpenClaw session still cannot close that gate end-to-end; the final proof must run from a native Windows terminal, so leaving it as the first unchecked item would stall autopilot.
 - `README.md` and `docs/headless_default_release_gate.md` both now treat `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\SmokeTest.ps1` as the default safe smoke path, with `-Config config\app.ini` kept as explicit opt-in for local/live evidence.
 - `.github/workflows/windows-regression.yml` already exists and runs `scripts\Regression.ps1` on `windows-latest` for `push`, `pull_request`, and `workflow_dispatch`.
-- That CI surface still does **not** replace the manual PASS gate: the repo still requires native Windows observation for the no-dialog claim and optional local scheduled-task proof.
-- Root `STATUS.md` is still stale (`Last triage: 2026-02-15 (UTC)`) and still leads with installer packaging instead of the current release gate and documentation gaps.
+- No `upload-artifact` reference was found in `.github/workflows/windows-regression.yml`, so Windows CI is still more of a pass/fail signal than a durable review surface.
+- Root `STATUS.md` is still stale (`Last triage: 2026-02-15 (UTC)`) and still leads with installer packaging instead of the current headless release gate and status-doc gaps.
 - At least one dated planning doc still advertises the old copy-pasteable live-config smoke command: `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md` still references `scripts\SmokeTest.ps1 -Config config\app.ini`.
 - `scripts/CheckHeadlessDefault.ps1` is the repo-facing canonical guard, but `scripts/VerifyNonInteractiveDefault.ps1` still exists as overlapping maintenance surface.
 
+## Queueing rule for this file
+
+- Lead with the highest-impact work that current automation can actually complete.
+- Keep externally blocked/manual items visible, but do **not** leave them as the first unchecked item unless the required environment is available.
+
 ## Prioritized open items
 
-- [ ] **P0 — Close the headless-default release gate with native Windows PASS evidence**
-  - **Why now:** this is still the single biggest blocker to trustworthy release readiness. The guard, smoke path, wrapper, CI regression, and PASS assert already exist; the missing piece is checked-in Windows proof.
-  - **Deliverables:**
-    - Run the safe native Windows evidence capture from a real Windows terminal.
-    - Run the PASS-grade capture after directly observing that the default path stays headless unless `--interactive` is passed.
-    - If `OneClickBackupDaily` exists, include scheduler proof in the same PASS-grade artifact.
-    - Update `docs/headless_default_release_gate.md` to `Status: **PASS**` with observer attribution and scheduler proof when applicable.
-  - **Verification:**
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1`
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1 -Mode Pass -ObservedBy "YourName"`
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1 -Mode Pass -ObservedBy "YourName" -ScheduledTaskName "OneClickBackupDaily"`
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\AssertHeadlessReleaseGate.ps1 -Path docs\headless_default_release_gate.md`
-  - **Current blocker:** this WSL/OpenClaw session cannot launch the native Windows binaries needed for the final proof run.
-
-- [ ] **P1 — Publish canonical status docs that clearly separate CI coverage from the manual Windows release gate**
-  - **Why now:** the repo now has both an automated Windows regression workflow and a manual PASS-grade release gate, but readers still have no single up-to-date status surface that explains the difference.
+- [ ] **P1 — Publish canonical status docs that explain the real release story**
+  - **Why now:** this is the biggest unblocked gap. Readers still have no current status surface that explains the difference between automated Windows regression and the still-manual native Windows PASS gate.
   - **Deliverables:**
     - Add `docs/status.md` with current state, evidence, and known limits.
     - Add `docs/critical_todo.md` containing only real blockers.
-    - Reconcile root `STATUS.md` so it matches the actual order of work: native Windows PASS evidence first, then the next unblocked cleanup items.
+    - Reconcile root `STATUS.md` so it matches the actual order of work: native Windows PASS evidence as the release blocker, then the next unblocked cleanup items.
     - Explicitly document that GitHub Actions covers static/prereq/fixture-backed regression, while native Windows manual evidence is still required for the no-dialog claim and local scheduled-task audit.
   - **Verification:**
     - `powershell -NoProfile -Command "Test-Path docs\status.md; Test-Path docs\critical_todo.md"`
@@ -50,7 +42,7 @@ Last reprioritized: 2026-03-12 01:25 UTC.
     - Human review confirms all three status surfaces tell the same story.
 
 - [ ] **P1 — Make the existing Windows regression workflow produce durable review artifacts**
-  - **Why now:** `.github/workflows/windows-regression.yml` already proves the repo can run fixture-backed regression on Windows CI, but the workflow is still mostly a pass/fail signal instead of a reusable evidence surface.
+  - **Why now:** Windows CI already exists, but reviewers still do not get durable logs/artifacts that can be linked from status docs or release notes.
   - **Deliverables:**
     - Persist regression outputs/logs as downloadable workflow artifacts.
     - If needed, make `scripts\Regression.ps1` emit stable artifact files instead of console-only evidence.
@@ -83,9 +75,23 @@ Last reprioritized: 2026-03-12 01:25 UTC.
     - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\CheckHeadlessDefault.ps1`
     - If a wrapper is kept: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\VerifyNonInteractiveDefault.ps1`
 
+- [ ] **BLOCKED MANUAL — Close the headless-default release gate with native Windows PASS evidence**
+  - **Why still listed:** this remains the biggest release-confidence blocker, but it cannot be completed from this WSL/OpenClaw session and therefore should not be the first unchecked item until a native Windows terminal is available.
+  - **Deliverables:**
+    - Run the safe native Windows evidence capture from a real Windows terminal.
+    - Run the PASS-grade capture after directly observing that the default path stays headless unless `--interactive` is passed.
+    - If `OneClickBackupDaily` exists, include scheduler proof in the same PASS-grade artifact.
+    - Update `docs/headless_default_release_gate.md` to `Status: **PASS**` with observer attribution and scheduler proof when applicable.
+  - **Verification:**
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1`
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1 -Mode Pass -ObservedBy "YourName"`
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\RunHeadlessEvidenceCapture.ps1 -Mode Pass -ObservedBy "YourName" -ScheduledTaskName "OneClickBackupDaily"`
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\AssertHeadlessReleaseGate.ps1 -Path docs\headless_default_release_gate.md`
+  - **Current blocker:** this WSL/OpenClaw session cannot launch the native Windows binaries needed for the final proof run.
+
 ## Notes
 
-- This refresh removes the now-obsolete notion that the repo still needs a Windows CI baseline from scratch: `.github/workflows/windows-regression.yml` already exists.
-- The active gap is now the boundary between **automated Windows regression evidence** and **manual Windows PASS-grade release proof**.
+- This queue now leads with unblocked engineering/documentation work instead of a manual native-Windows-only gate, so autopilot can keep making progress.
+- The native Windows PASS capture is still the main release blocker; it is parked lower only because the current environment cannot complete it.
 - Missing `docs/status.md` and `docs/critical_todo.md` are tracked as real documentation work, not as path-discovery problems.
 - This queue stays at five open items because they are the only currently evidenced tasks with clear release, reliability, or maintenance impact.

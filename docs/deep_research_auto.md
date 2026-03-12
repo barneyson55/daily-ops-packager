@@ -117,6 +117,8 @@ Consequence:
 
 ## Highest-impact roadmap from current evidence
 
+Note: for the **active** `docs/ai_todo.md` ordering, the queue should lead with work current automation can complete. The native Windows PASS gate remains the main release blocker, but it is manual/native-Windows-only and should not stay as the first unchecked item while this session is running under WSL.
+
 1. Close the headless-default release gate with native Windows PASS evidence.
 2. Add `docs/status.md` and `docs/critical_todo.md`, then reconcile root `STATUS.md` around the real blockers and the CI/manual evidence split.
 3. Make the existing Windows regression workflow produce durable review artifacts and document what those artifacts prove.
