@@ -54,17 +54,27 @@ jobs:
           }
 
           $registryCandidates = @(
+            'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\AutoHotkey64.exe',
+            'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\AutoHotkey.exe',
+            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\AutoHotkey64.exe',
             'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\AutoHotkey.exe',
+            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\App Paths\AutoHotkey64.exe',
             'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\App Paths\AutoHotkey.exe'
           ) | ForEach-Object {
             (Get-ItemProperty -Path $_ -ErrorAction SilentlyContinue).'(default)'
           }
 
-          $pathCandidates = @(
+          $orderedCandidates = @()
+          $orderedCandidates += @(
             (Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey64.exe'),
             (Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey.exe'),
             $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\v2\AutoHotkey64.exe' }),
             $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\v2\AutoHotkey.exe' }),
+            $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA 'Programs\AutoHotkey\v2\AutoHotkey64.exe' }),
+            $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA 'Programs\AutoHotkey\v2\AutoHotkey.exe' })
+          )
+          $orderedCandidates += @($registryCandidates)
+          $orderedCandidates += @(
             (Get-Command AutoHotkey64.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
             (Get-Command AutoHotkey.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
             (Join-Path $env:ProgramFiles 'AutoHotkey\AutoHotkey64.exe'),
@@ -73,13 +83,18 @@ jobs:
             $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\AutoHotkey.exe' })
           )
 
-          $ahkCandidates = @($pathCandidates) + @($registryCandidates) |
+          $ahkCandidates = $orderedCandidates |
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path -LiteralPath $_ -PathType Leaf) } |
             Select-Object -Unique
 
-          $ahkPath = $ahkCandidates |
-            Where-Object { Test-AhkV2Candidate -Path $_ } |
-            Select-Object -First 1
+          $ahkPath = $null
+          foreach ($candidate in $ahkCandidates) {
+            Write-Host "Probing AutoHotkey candidate: $candidate"
+            if (Test-AhkV2Candidate -Path $candidate) {
+              $ahkPath = $candidate
+              break
+            }
+          }
 
           if (-not $ahkPath) {
             $ahkRoots = @(
