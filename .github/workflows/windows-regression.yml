@@ -29,14 +29,20 @@ jobs:
         run: |
           choco install autohotkey --yes --no-progress
 
+          $searchRoots = @(
+            (Join-Path $env:ProgramFiles 'AutoHotkey'),
+            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey' })
+          ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path -LiteralPath $_ -PathType Container) }
+
+          $discoveredPaths = foreach ($root in $searchRoots) {
+            Get-ChildItem -LiteralPath $root -Filter 'AutoHotkey*.exe' -Recurse -File -ErrorAction SilentlyContinue |
+              Select-Object -ExpandProperty FullName
+          }
+
           $candidates = @(
             (Get-Command AutoHotkey64.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
-            (Get-Command AutoHotkey.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
-            (Join-Path $env:ProgramFiles 'AutoHotkey\AutoHotkey64.exe'),
-            (Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\AutoHotkey64.exe'),
-            (Join-Path $env:ProgramFiles 'AutoHotkey\AutoHotkey.exe'),
-            (Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\AutoHotkey.exe')
-          )
+            (Get-Command AutoHotkey.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue)
+          ) + @($discoveredPaths)
 
           $ahkPath = $candidates |
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path -LiteralPath $_ -PathType Leaf) } |
