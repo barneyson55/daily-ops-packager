@@ -19,8 +19,6 @@ jobs:
   regression:
     runs-on: windows-latest
     timeout-minutes: 15
-    env:
-      REGRESSION_ARTIFACT_DIR: ${{ runner.temp }}/windows-regression-artifacts
 
     steps:
       - name: Check out repository
@@ -45,17 +43,19 @@ jobs:
       - name: Prepare regression artifact directory
         shell: powershell
         run: |
-          if (Test-Path -LiteralPath $env:REGRESSION_ARTIFACT_DIR) {
-            Remove-Item -LiteralPath $env:REGRESSION_ARTIFACT_DIR -Recurse -Force
+          $artifactDir = Join-Path $env:RUNNER_TEMP 'windows-regression-artifacts'
+          if (Test-Path -LiteralPath $artifactDir) {
+            Remove-Item -LiteralPath $artifactDir -Recurse -Force
           }
 
-          New-Item -ItemType Directory -Path $env:REGRESSION_ARTIFACT_DIR -Force | Out-Null
+          New-Item -ItemType Directory -Path $artifactDir -Force | Out-Null
 
       - name: Run regression suite
         id: regression
         shell: powershell
         run: |
-          $logPath = Join-Path $env:REGRESSION_ARTIFACT_DIR 'regression.log'
+          $artifactDir = Join-Path $env:RUNNER_TEMP 'windows-regression-artifacts'
+          $logPath = Join-Path $artifactDir 'regression.log'
           & powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Regression.ps1 *>&1 | Tee-Object -FilePath $logPath
           if ($LASTEXITCODE -ne 0) {
             exit $LASTEXITCODE
@@ -67,8 +67,9 @@ jobs:
         env:
           REGRESSION_OUTCOME: ${{ steps.regression.outcome }}
         run: |
-          $summaryPath = Join-Path $env:REGRESSION_ARTIFACT_DIR 'regression-summary.md'
-          $contextPath = Join-Path $env:REGRESSION_ARTIFACT_DIR 'workflow-context.txt'
+          $artifactDir = Join-Path $env:RUNNER_TEMP 'windows-regression-artifacts'
+          $summaryPath = Join-Path $artifactDir 'regression-summary.md'
+          $contextPath = Join-Path $artifactDir 'workflow-context.txt'
           $runUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
 
           @(
@@ -106,6 +107,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-regression-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ env.REGRESSION_ARTIFACT_DIR }}
+          path: ${{ runner.temp }}/windows-regression-artifacts
           if-no-files-found: error
           retention-days: 30
