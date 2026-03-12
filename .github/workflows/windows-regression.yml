@@ -29,41 +29,28 @@ jobs:
         run: |
           choco install autohotkey --yes --no-progress
 
-          function Get-AhkProbeText([string]$Path) {
-            $output = & $Path '/ErrorStdOut' '/CP65001' 2>&1
-            return ($output | Out-String).Trim()
-          }
-
           function Test-AhkV2Candidate([string]$Path) {
             if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) {
               return $false
             }
 
+            $normalizedPath = $Path -replace '/', '\'
             $fileVersion = (Get-Item -LiteralPath $Path).VersionInfo.FileVersion
-            if (-not [string]::IsNullOrWhiteSpace($fileVersion) -and $fileVersion -notmatch '^2\.') {
+            if (-not [string]::IsNullOrWhiteSpace($fileVersion)) {
+              if ($fileVersion -match '^2\.') {
+                return $true
+              }
+
               Write-Host "Rejecting AutoHotkey candidate (FileVersion=$fileVersion): $Path"
               return $false
             }
 
-            $probeText = Get-AhkProbeText -Path $Path
-            if ($probeText -match '(?im)\bAutoHotkey v1(?:\.|\b)' -or $probeText -match '(?im)^\s*v1\.') {
-              Write-Host "Rejecting AutoHotkey candidate because probe output shows v1: $Path"
-              if ($probeText) {
-                Write-Host $probeText
-              }
-              return $false
+            if ($normalizedPath -match '(?i)\\AutoHotkey\\v2\\AutoHotkey(?:64)?\.exe$') {
+              return $true
             }
 
-            $versionMatch = [regex]::Match($probeText, '(?im)^\s*(?:AutoHotkey\s+)?v(?<major>\d+)\.')
-            if ($versionMatch.Success -and $versionMatch.Groups['major'].Value -ne '2') {
-              Write-Host "Rejecting AutoHotkey candidate because probe output is not v2: $Path"
-              if ($probeText) {
-                Write-Host $probeText
-              }
-              return $false
-            }
-
-            return $true
+            Write-Host "Rejecting AutoHotkey candidate with unknown version metadata: $Path"
+            return $false
           }
 
           $registryCandidates = @(
@@ -74,17 +61,19 @@ jobs:
           }
 
           $pathCandidates = @(
+            (Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey64.exe'),
+            (Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey.exe'),
+            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\v2\AutoHotkey64.exe' }),
+            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\v2\AutoHotkey.exe' }),
             (Get-Command AutoHotkey64.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
             (Get-Command AutoHotkey.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
-            (Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey.exe'),
-            (Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey64.exe'),
-            (Join-Path $env:ProgramFiles 'AutoHotkey\AutoHotkey.exe'),
             (Join-Path $env:ProgramFiles 'AutoHotkey\AutoHotkey64.exe'),
-            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\v2\AutoHotkey.exe' }),
-            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\v2\AutoHotkey64.exe' })
+            (Join-Path $env:ProgramFiles 'AutoHotkey\AutoHotkey.exe'),
+            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\AutoHotkey64.exe' }),
+            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\AutoHotkey.exe' })
           )
 
-          $ahkCandidates = @($registryCandidates) + @($pathCandidates) |
+          $ahkCandidates = @($pathCandidates) + @($registryCandidates) |
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path -LiteralPath $_ -PathType Leaf) } |
             Select-Object -Unique
 

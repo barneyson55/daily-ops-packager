@@ -1,39 +1,28 @@
 # Deep Research — daily-ops-packager
 
-Updated: 2026-03-12 13:22 UTC
+Updated: 2026-03-12 16:02 UTC
 Scope of this pass: docs-only maintenance at the exact requested repo root `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager` (realpath resolves to `/mnt/c/CORE/daily-ops-packager`). No source-code changes.
 
 ## Sources reviewed
 
 ### Local repo evidence
 - `git status --short --branch`
-- `README.md`
-- `STATUS.md`
 - `docs/status.md`
 - `docs/critical_todo.md`
 - `docs/ai_todo.md` (pre-refresh)
 - `docs/deep_research_auto.md` (pre-refresh)
-- `docs/ARCHITECTURE.md`
 - `docs/headless_default_release_gate.md`
-- `.github/workflows/windows-regression.yml`
-- `scripts/Regression.ps1`
-- `scripts/SmokeTest.ps1`
-- `scripts/CheckHeadlessDefault.ps1`
-- `scripts/VerifyNonInteractiveDefault.ps1`
 
 ### Live GitHub evidence
-- `gh run list --workflow windows-regression.yml --limit 5`
+- `gh run list --workflow windows-regression.yml --limit 8`
+- `gh run view 23010206186 --log-failed`
 - `gh api repos/barneyson55/daily-ops-packager/actions/artifacts`
-- `gh run download 22997394546 --dir /tmp/dop-artifact`
-- Downloaded artifact contents from `windows-regression-22997394546-1`
-
-### Minimal external validation
-- Brave search for Chocolatey AutoHotkey package metadata/version ambiguity
-- Brave search for `actions/upload-artifact@v4` artifact behavior
+- `gh run download 23010206186 --dir <tmp>`
+- Downloaded artifact contents from `windows-regression-23010206186-1`
 
 ## Findings from this pass
 
-### 1) The required docs surfaces exist, and there was no pre-existing dirty tree to work around
+### 1) The required docs surfaces exist, and the tree started clean
 Evidence:
 - `docs/status.md` exists.
 - `docs/critical_todo.md` exists.
@@ -43,101 +32,86 @@ Evidence:
 
 Consequence:
 - No path-discovery work was needed.
-- This pass could stay narrowly scoped to docs curation and evidence review.
+- This pass could stay narrowly scoped to docs curation and live-evidence review.
 
-### 2) The CI repair milestone is now real, not hypothetical
+### 2) The repo now has stored workflow artifacts, but the latest workflow state is mixed rather than simply green
 Evidence:
-- `gh run list --workflow windows-regression.yml --limit 5` shows run `22997394546` concluded `success`.
-- `gh api repos/barneyson55/daily-ops-packager/actions/artifacts` now returns stored artifacts, including `windows-regression-22997394546-1`.
-- The successful artifact bundle was downloaded and verified to contain:
-  - `regression.log`
-  - `regression-summary.md`
-  - `workflow-context.txt`
+- `gh api repos/barneyson55/daily-ops-packager/actions/artifacts` returned `total_count: 8` during this pass.
+- `gh run list --workflow windows-regression.yml --limit 8` shows:
+  - latest success: `22997394546`
+  - newer failures: `23006791388` and `23010206186`
+- The older stale docs still describe an earlier world of `only failures` and `0 artifacts`.
 
 Consequence:
-- The old top AI-todo item about “download and inspect one successful artifact bundle” is complete.
-- Status docs that still describe only failing runs / zero artifacts are now stale.
+- `docs/status.md` and `docs/critical_todo.md` are now clearly stale.
+- The backlog should focus on the current CI breakage and proof-quality gaps, not the already-closed question of whether artifacts can exist at all.
 
-### 3) The repo’s release proof is intentionally two-layered
+### 3) The previous green CI milestone is still not trustworthy enough to close the runtime-proof question
 Evidence:
-- `README.md`, `docs/status.md`, and `docs/headless_default_release_gate.md` all distinguish between:
-  1. automated Windows regression on `windows-latest`, and
-  2. native Windows PASS evidence recorded in `docs/headless_default_release_gate.md`.
-- `.github/workflows/windows-regression.yml` exercises `scripts\Regression.ps1` and uploads a review artifact bundle.
-- `docs/headless_default_release_gate.md` still requires direct observation on a native Windows desktop and, when applicable, scheduler proof for `OneClickBackupDaily`.
-
-Consequence:
-- The roadmap should not collapse these into one task.
-- CI hardening and native Windows release signoff are distinct milestones and should remain separate backlog items.
-
-### 4) The highest-leverage risk is now a likely false-positive gap in the green CI run
-Evidence:
-- The downloaded `regression.log` from successful run `22997394546` still contains:
+- The latest successful run remains `22997394546`.
+- Its downloaded `regression.log` still contains:
   - `This script requires AutoHotkey v2.0.`
   - `Current interpreter: AutoHotkey v1.1.36.02 Unicode 64-bit`
-- `scripts/SmokeTest.ps1` currently treats the AutoHotkey launch as successful if the process exits `0`; it does not assert on version/banner content.
-- `scripts/Regression.ps1` only requires `Smoke test OK.` plus expected prereq output; it also does not reject wrong-runtime banner strings.
-- `.github/workflows/windows-regression.yml` attempts dynamic executable discovery, but the successful artifact still shows the wrong-runtime text made it through the pipeline.
+- That same log still ends with `Regression suite OK.`
 
 Consequence:
-- The next top engineering task is **not** another artifact download.
-- The next top task is to make CI prove that `src\OneClickBackup.ahk` actually ran under AutoHotkey v2, and to fail hard when the v2-required banner or v1 interpreter string appears.
+- A green run can still overstate confidence.
+- The repo still needs a hard failure condition for wrong AutoHotkey major-version output, even after CI is repaired.
 
-### 5) Artifact strategy is stronger than the stale docs imply
+### 4) The newest workflow attempts fail earlier than before: AutoHotkey v2 discovery is currently broken
 Evidence:
-- `.github/workflows/windows-regression.yml` uses `if: always()` for both summary generation and artifact upload.
-- `gh api repos/barneyson55/daily-ops-packager/actions/artifacts` currently returns multiple stored artifacts, including artifacts from failed or cancelled runs.
-- The successful artifact summary explicitly states what CI proves and what it does not prove.
+- `gh run view 23010206186 --log-failed` shows the `Install AutoHotkey v2` step listing files including:
+  - `C:\Program Files\AutoHotkey\v2\AutoHotkey.exe`
+  - `C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe`
+- The same step then throws: `AutoHotkey v2 executable not found after Chocolatey install.`
+- Run `23010206186` therefore fails before the regression suite completes.
 
 Consequence:
-- Artifact inspection should be part of normal triage for both passing and failing runs.
-- Future docs should distinguish “artifact exists” from “artifact proves the intended thing.”
+- The highest-leverage task has changed slightly: before proving runtime correctness, the workflow must first be repaired so it reaches `scripts\Regression.ps1` again.
+- This is now a sharper and more immediate engineering target than generic doc sync.
 
-### 6) Architecture insight: this project is really a PowerShell evidence harness around an AutoHotkey v2 app
+### 5) Failed-run artifacts can exist without carrying the main regression transcript
 Evidence:
-- `docs/ARCHITECTURE.md` shows the functional pipeline: collect → copy → 7z → verify → rclone upload → optional email → CSV/logs.
-- `README.md` and `scripts/*.ps1` show that release confidence is built mostly through PowerShell helper scripts:
-  - static source guard (`CheckHeadlessDefault.ps1`)
-  - readiness validation (`CheckPrereqs.ps1`)
-  - smoke execution (`SmokeTest.ps1`)
-  - regression orchestration (`Regression.ps1`)
-  - durable human-observed release gate capture (`RunHeadlessEvidenceCapture.ps1` / `CaptureHeadlessEvidence.ps1`)
+- Downloaded artifact `windows-regression-23010206186-1` contains only:
+  - `regression-summary.md`
+  - `workflow-context.txt`
+- The artifact records `Outcome: skipped` and does not contain `regression.log`.
 
 Consequence:
-- Engineering leverage is highest in the harness right now: if the harness under-proves runtime correctness, every downstream doc becomes less trustworthy.
-- That justifies moving CI runtime-proof hardening above pure docs-sync work in the todo order.
+- “Artifact uploaded” is no longer enough as a success signal.
+- Future backlog items should verify the presence of `regression.log`, not just the existence of any artifact bundle.
 
-### 7) Minimal external validation supports, but does not replace, the repo evidence
+### 6) The native Windows release gate remains unchanged and still blocks checked-in release proof
 Evidence:
-- Brave search returns current Chocolatey AutoHotkey package pages for v2 as well as older v1 package pages, so version/path ambiguity is plausible in the ecosystem.
-- Brave search also returns GitHub artifact docs consistent with `upload-artifact@v4` retention and upload behavior.
+- `docs/headless_default_release_gate.md` still shows `Status: **PENDING_REAL_RUN**`.
+- That file still requires native Windows execution plus direct observation, and scheduler proof when `OneClickBackupDaily` exists.
 
 Consequence:
-- External validation increases confidence that the observed AutoHotkey version ambiguity is realistic.
-- But the decisive evidence is still local: the downloaded success artifact already contains the wrong-runtime banner.
+- Even after CI repair, the durable checked-in release gate remains open.
+- Native Windows capture should stay near the top of the queue, but after the current CI repair work that enables trustworthy fresh automation evidence.
 
 ## Assumptions
 
-- The downloaded artifact for run `22997394546` is a faithful capture of the workflow’s stdout/stderr and summary files.
-- The `This script requires AutoHotkey v2.0.` banner in `regression.log` came from the smoke execution path that attempted to run `src\OneClickBackup.ahk`.
-- This OpenClaw session still cannot perform native Windows execution, so any PASS-grade release-gate closure remains out of scope here.
+- The failed-run artifact for `23010206186` faithfully represents what the workflow published after the early install/discovery failure.
+- The listed AutoHotkey v2 paths in the failed step log are real enough to treat the current failure as a discovery/selection bug rather than a missing-install problem.
+- This OpenClaw session still cannot perform the required native Windows execution for PASS-grade release-gate closure.
 
 ## Unknowns
 
-- Whether the workflow is resolving a pre-existing AutoHotkey v1 executable from registry/path before the intended v2 install path, or whether the installed package itself exposes an ambiguous generic executable path.
-- Whether the wrong-runtime launch always exits `0` on GitHub runners, or whether the current green run depends on a narrower behavior.
-- Whether `OneClickBackupDaily` is present on the target Windows machine that will provide PASS-grade evidence.
-- Whether future reviewers want the resolved AutoHotkey version surfaced in `regression-summary.md`, `workflow-context.txt`, or only in `regression.log`.
+- Whether the discovery bug is caused by path probing order, quoting, environment propagation between steps, or an incorrect post-install assertion.
+- Whether the follow-up failure `23006791388` is identical to `23010206186` or only adjacent in symptom.
+- Whether the next successful run will include `regression.log` automatically once the workflow reaches the regression step again, or whether artifact-generation logic also needs tightening.
+- Whether `OneClickBackupDaily` exists on the eventual native Windows validation machine.
 
 ## Resulting prioritization
 
-1. Harden Windows regression so a wrong AutoHotkey major version cannot pass green.
-2. Run native Windows headless-evidence capture, including scheduler audit if `OneClickBackupDaily` exists.
-3. Close `docs/headless_default_release_gate.md` with PASS-grade native Windows evidence.
-4. Reconcile stale status surfaces after the next fresh evidence-backed change.
+1. Repair AutoHotkey v2 discovery so `windows-regression.yml` reaches `scripts\Regression.ps1` again.
+2. Keep the repaired workflow green only when `regression.log` proves AutoHotkey v2 actually ran and the wrong-runtime banner is absent.
+3. Capture native Windows PASS evidence in `docs/headless_default_release_gate.md`, including scheduler audit when applicable.
+4. Refresh stale status docs after the next evidence-bearing change.
 
 ## Notes
 
 - This pass intentionally updated only `docs/ai_todo.md` and this research file.
-- The main backlog change is replacing “download and inspect a successful artifact bundle” with “fix the CI false-positive gap exposed by that successful artifact.”
+- The main backlog change is splitting the old “fix proof quality” task into two sequential CI milestones: restore execution first, then harden proof correctness.
 - No source-code changes were made in this maintenance pass.
