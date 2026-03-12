@@ -29,26 +29,41 @@ jobs:
         run: |
           choco install autohotkey --yes --no-progress
 
-          $searchRoots = @(
-            (Join-Path $env:ProgramFiles 'AutoHotkey'),
-            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey' })
-          ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path -LiteralPath $_ -PathType Container) }
-
-          $discoveredPaths = foreach ($root in $searchRoots) {
-            Get-ChildItem -LiteralPath $root -Filter 'AutoHotkey*.exe' -Recurse -File -ErrorAction SilentlyContinue |
-              Select-Object -ExpandProperty FullName
+          $registryCandidates = @(
+            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\AutoHotkey.exe',
+            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\App Paths\AutoHotkey.exe'
+          ) | ForEach-Object {
+            (Get-ItemProperty -Path $_ -ErrorAction SilentlyContinue).'(default)'
           }
 
-          $candidates = @(
+          $pathCandidates = @(
             (Get-Command AutoHotkey64.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
-            (Get-Command AutoHotkey.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue)
-          ) + @($discoveredPaths)
+            (Get-Command AutoHotkey.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
+            (Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey.exe'),
+            (Join-Path $env:ProgramFiles 'AutoHotkey\v2\AutoHotkey64.exe'),
+            (Join-Path $env:ProgramFiles 'AutoHotkey\AutoHotkey.exe'),
+            (Join-Path $env:ProgramFiles 'AutoHotkey\AutoHotkey64.exe'),
+            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\v2\AutoHotkey.exe' }),
+            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey\v2\AutoHotkey64.exe' })
+          )
 
-          $ahkPath = $candidates |
+          $ahkPath = @($registryCandidates) + @($pathCandidates) |
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path -LiteralPath $_ -PathType Leaf) } |
             Select-Object -First 1
 
           if (-not $ahkPath) {
+            $ahkRoots = @(
+              (Join-Path $env:ProgramFiles 'AutoHotkey'),
+              $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'AutoHotkey' })
+            ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path -LiteralPath $_ -PathType Container) }
+
+            foreach ($root in $ahkRoots) {
+              Write-Host "Contents under $root:"
+              Get-ChildItem -LiteralPath $root -Recurse -File -ErrorAction SilentlyContinue |
+                Select-Object -ExpandProperty FullName |
+                ForEach-Object { Write-Host "  $_" }
+            }
+
             throw 'AutoHotkey executable not found after Chocolatey install.'
           }
 
