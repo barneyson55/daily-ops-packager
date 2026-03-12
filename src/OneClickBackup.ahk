@@ -14,7 +14,7 @@
 main()
 
 main() {
-  baseDir := DirGetParent(A_ScriptDir)
+  baseDir := GetParentDir(A_ScriptDir)
   cfg := ""
   summary := { status: "unknown", fileCount: 0, archivePath: "", zipExit: "", verifyExit: "", uploadExit: "", message: "" }
 
@@ -154,7 +154,7 @@ ShowHelp(interactive := false) {
 }
 
 ValidatePrereqs(cfg, dryRun := false) {
-  baseDir := DirGetParent(A_ScriptDir)
+  baseDir := GetParentDir(A_ScriptDir)
   contractPath := Config.ResolvePath("config\\readiness.contract.ini", baseDir)
   Readiness.Validate(cfg, contractPath, dryRun)
 }
@@ -166,6 +166,11 @@ ConsoleWrite(text) {
 MaybeShowDialog(interactive, text) {
   if (interactive)
     MsgBox text
+}
+
+GetParentDir(path) {
+  SplitPath path, , &parentDir
+  return parentDir
 }
 
 SafeWriteSummary(baseDir, summary) {

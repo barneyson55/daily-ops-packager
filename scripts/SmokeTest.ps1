@@ -59,7 +59,7 @@ try {
   }
 
   Write-Host "Running dry-run..."
-  & $AhkExe $ahkScript --config $Config --dry-run
+  & $AhkExe '/ErrorStdOut=UTF-8' $ahkScript --config $Config --dry-run
   $code = $LASTEXITCODE
   if ($code -ne 0) {
     Write-Error "Dry-run failed with exit code $code"
