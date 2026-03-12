@@ -40,9 +40,10 @@
 
 ## Current blocker
 
-- This repo is available through WSL at `/mnt/c/CORE/daily-ops-packager`, but the current OpenClaw automation session cannot launch native Windows binaries from here.
-- Confirmed failing binaries in this pass: `powershell.exe`, `cmd.exe`, `AutoHotkey64.exe`
-- Failure happens before the target process starts: `WSL ... UtilBindVsockAnyPort:307: socket failed 1`
+- This repo is available through WSL at `/mnt/c/CORE/daily-ops-packager`, but the current OpenClaw automation session still cannot run the native Windows binaries needed for the final proof.
+- Re-verified in this pass from the repo root:
+  - `pwsh` is not installed in this Linux/WSL session.
+  - `powershell.exe`, `cmd.exe`, and `AutoHotkey64.exe` are not callable here (`Command not found`).
 - Result: the remaining PASS-grade evidence must be captured from a **native Windows terminal**, not from this WSL/OpenClaw session.
 
 ## Required human action
