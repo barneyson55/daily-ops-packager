@@ -113,10 +113,10 @@ jobs:
           }
 
           $probeScriptPath = Join-Path $env:RUNNER_TEMP 'probe-ahk-version.ahk'
-          @'
-#Requires AutoHotkey v2.0
-FileAppend(A_AhkVersion . "`n", "*")
-'@ | Out-File -FilePath $probeScriptPath -Encoding utf8
+          @(
+            '#Requires AutoHotkey v2.0',
+            'FileAppend(A_AhkVersion . "`n", "*")'
+          ) | Set-Content -Path $probeScriptPath -Encoding utf8
 
           $previousErrorActionPreference = $ErrorActionPreference
           try {

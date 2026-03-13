@@ -1,6 +1,6 @@
 # Deep Research — daily-ops-packager
 
-Updated: 2026-03-13 02:14 UTC
+Updated: 2026-03-13 04:23 UTC
 Scope of this pass: docs-only maintenance at the exact requested repo root `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager` (realpath resolves to `/mnt/c/CORE/daily-ops-packager`). No source-code changes.
 
 ## Sources reviewed
@@ -202,8 +202,8 @@ Consequence:
 1. Fix the AutoHotkey install-step probe in `.github/workflows/windows-regression.yml` so the workflow stops failing before regression starts.
 2. Re-establish one fresh green `windows-regression.yml` run and re-verify the full artifact bundle and runtime evidence.
 3. Capture native Windows PASS evidence in `docs/headless_default_release_gate.md`, including scheduler audit when applicable.
-4. Collapse the duplicate static-guard surface so `CheckHeadlessDefault.ps1` is the only canonical entrypoint.
-5. Refresh `STATUS.md`, `docs/status.md`, and `docs/critical_todo.md` after the post-fix run.
+4. Refresh `STATUS.md`, `docs/status.md`, and `docs/critical_todo.md` after the post-fix run so operator docs stop lagging the real CI state.
+5. Collapse the duplicate static-guard surface so `CheckHeadlessDefault.ps1` is the only canonical entrypoint.
 
 ## Notes
 
