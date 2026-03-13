@@ -201,9 +201,9 @@ Consequence:
 
 1. Fix the AutoHotkey install-step probe in `.github/workflows/windows-regression.yml` so the workflow stops failing before regression starts.
 2. Re-establish one fresh green `windows-regression.yml` run and re-verify the full artifact bundle and runtime evidence.
-3. Capture native Windows PASS evidence in `docs/headless_default_release_gate.md`, including scheduler audit when applicable.
-4. Refresh `STATUS.md`, `docs/status.md`, and `docs/critical_todo.md` after the post-fix run so operator docs stop lagging the real CI state.
-5. Collapse the duplicate static-guard surface so `CheckHeadlessDefault.ps1` is the only canonical entrypoint.
+3. Refresh `STATUS.md`, `docs/status.md`, and `docs/critical_todo.md` after the post-fix run so operator docs stop lagging the real CI state.
+4. Collapse the duplicate static-guard surface so `CheckHeadlessDefault.ps1` is the only canonical entrypoint.
+5. Capture native Windows PASS evidence in `docs/headless_default_release_gate.md`, including scheduler audit when applicable.
 
 ## Notes
 
@@ -211,5 +211,6 @@ Consequence:
 - The key backlog change is substantive, not cosmetic:
   - **old lead gap:** failure artifacts overstated what was proven
   - **new lead gap:** that problem is fixed, but the new runtime probe now breaks the workflow earlier
+- For the Autopilot queue specifically, all still-open repo-actionable work should stay above the native-Windows-only PASS gate so execution does not dead-end on a human-observation task.
 - The repo’s architecture keeps the roadmap fairly crisp: one workflow, one AHK app, a small PowerShell validation/evidence harness, and one still-open native Windows release gate.
 - No source-code changes were made in this maintenance pass.
