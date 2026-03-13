@@ -183,18 +183,71 @@ jobs:
         if: always()
         shell: powershell
         env:
+          JOB_STATUS: ${{ job.status }}
           REGRESSION_OUTCOME: ${{ steps.regression.outcome }}
         run: |
           $artifactDir = Join-Path $env:RUNNER_TEMP 'windows-regression-artifacts'
           New-Item -ItemType Directory -Path $artifactDir -Force | Out-Null
           $summaryPath = Join-Path $artifactDir 'regression-summary.md'
           $contextPath = Join-Path $artifactDir 'workflow-context.txt'
+          $logPath = Join-Path $artifactDir 'regression.log'
+          $preRegressionMarkerPath = Join-Path $artifactDir 'pre-regression-failure.txt'
           $runUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+          $hasRegressionLog = Test-Path -LiteralPath $logPath -PathType Leaf
+          $proofLines = @()
+          $limitLines = @(
+            '- It is not direct observation on a native Windows desktop.',
+            '- It does not replace PASS-grade evidence in `docs\headless_default_release_gate.md`.',
+            '- It does not prove local scheduled-task behavior for `OneClickBackupDaily`.'
+          )
+
+          if ($hasRegressionLog -and $env:REGRESSION_OUTCOME -eq 'success') {
+            $proofLines = @(
+              '- `scripts\Regression.ps1` ran on `windows-latest`.',
+              '- The static headless-default guard passed.',
+              '- Fixture-backed prereq checks passed, including expected failure fixtures.',
+              '- The safe smoke path was exercised with the repo-local readiness fixture by default.'
+            )
+          }
+          elseif ($hasRegressionLog) {
+            $proofLines = @(
+              '- `scripts\Regression.ps1` started and produced `regression.log` on `windows-latest`.',
+              '- This artifact captures partial regression evidence only; inspect `regression.log` for the last completed check.'
+            )
+            $limitLines = @(
+              '- It does **not** prove the full regression suite passed.',
+              '- It does **not** prove all prereq checks or the safe smoke path completed successfully.'
+            ) + $limitLines
+          }
+          else {
+            $proofLines = @(
+              '- This run failed before the regression suite produced `regression.log`.',
+              '- Treat this as a pre-regression failure artifact only; `scripts\Regression.ps1` did not run to a log-producing point.'
+            )
+            $limitLines = @(
+              '- It does **not** prove `scripts\Regression.ps1` ran on `windows-latest`.',
+              '- It does **not** prove the static headless-default guard passed.',
+              '- It does **not** prove fixture-backed prereq checks passed.',
+              '- It does **not** prove the safe smoke path was exercised.'
+            ) + $limitLines
+
+            @(
+              'windows-regression pre-regression failure marker',
+              'This run failed before the regression suite produced regression.log.',
+              'The regression step did not run to a log-producing point.',
+              "job_status=$env:JOB_STATUS",
+              "regression_outcome=$env:REGRESSION_OUTCOME",
+              'regression_log_present=false',
+              "run_url=$runUrl"
+            ) | Set-Content -Path $preRegressionMarkerPath -Encoding UTF8
+          }
 
           @(
             '# Windows regression artifact summary',
             '',
             "- Outcome: $env:REGRESSION_OUTCOME",
+            "- Job status: $env:JOB_STATUS",
+            "- Regression log present: $hasRegressionLog",
             "- Repository: $env:GITHUB_REPOSITORY",
             "- Ref: $env:GITHUB_REF",
             "- Commit: $env:GITHUB_SHA",
@@ -203,21 +256,17 @@ jobs:
             "- Run: $env:GITHUB_RUN_NUMBER (attempt $env:GITHUB_RUN_ATTEMPT)",
             "- Run URL: $runUrl",
             '',
-            '## What this artifact proves',
-            '- `scripts\Regression.ps1` ran on `windows-latest`.',
-            '- The static headless-default guard passed.',
-            '- Fixture-backed prereq checks passed, including expected failure fixtures.',
-            '- The safe smoke path was exercised with the repo-local readiness fixture by default.',
+            '## What this artifact proves'
+          ) + $proofLines + @(
             '',
-            '## What this artifact does not prove',
-            '- It is not direct observation on a native Windows desktop.',
-            '- It does not replace PASS-grade evidence in `docs\headless_default_release_gate.md`.',
-            '- It does not prove local scheduled-task behavior for `OneClickBackupDaily`.'
-          ) | Set-Content -Path $summaryPath -Encoding UTF8
+            '## What this artifact does not prove'
+          ) + $limitLines | Set-Content -Path $summaryPath -Encoding UTF8
 
           @(
             "artifact_dir=$artifactDir",
+            "job_status=$env:JOB_STATUS",
             "outcome=$env:REGRESSION_OUTCOME",
+            "regression_log_present=$hasRegressionLog",
             "run_url=$runUrl"
           ) | Set-Content -Path $contextPath -Encoding UTF8
 
