@@ -144,7 +144,7 @@ jobs:
             throw "Resolved AutoHotkey executable probe failed: $ahkPath"
           }
 
-          $probeVersionMatch = [regex]::Match($probeOutput, '(?im)^\s*(?:AutoHotkey\s+)?v(?<major>\d+)\.')
+          $probeVersionMatch = [regex]::Match($probeOutput, '(?im)^\s*(?:AutoHotkey\s+)?v?(?<major>\d+)\.')
           if (-not $probeVersionMatch.Success -or $probeVersionMatch.Groups['major'].Value -ne '2') {
             if (-not [string]::IsNullOrWhiteSpace($probeOutput)) {
               Write-Host $probeOutput.Trim()
