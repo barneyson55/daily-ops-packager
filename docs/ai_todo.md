@@ -3,23 +3,19 @@
 Autopilot executes the first unchecked **top-level** item (`- [ ]`).
 Keep this file short, current, and evidence-driven.
 
-Last reprioritized: 2026-03-13 07:14 UTC.
+Last reprioritized: 2026-03-13 08:26 UTC.
 
 ## Current evidence snapshot
 
-- Verified at the exact requested repo root `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager` (realpath resolves to `/mnt/c/CORE/daily-ops-packager`): `docs/status.md`, `docs/critical_todo.md`, `docs/ai_todo.md`, and `docs/deep_research_auto.md` all exist.
-- `git -C /home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager status --short --branch` shows only the existing docs worktree edits from this maintenance stream.
-- Repo status docs are still split:
-  - `docs/status.md`, `docs/critical_todo.md`, and repo-root `STATUS.md` still describe the older `only failures / zero artifacts` picture.
-  - `docs/ai_todo.md` and `docs/deep_research_auto.md` had already been tracking the CI repair thread more closely.
-- P0 is now effectively closed on current `master`:
-  - latest run `23039582037` on commit `4ed1680` finished `success`
-  - job `66914844724` shows `Install AutoHotkey v2`, `Prepare regression artifact directory`, and `Run regression suite` all concluded `success`
-  - the run log contains `Resolved AutoHotkey v2 at C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe`
-  - the run log does **not** contain `Script file not found`
-- The live failure-to-success transition is now clear:
-  - failed run `23037310780` no longer hit the old bare-executable `Script file not found` bug; it printed `2.0.21` and then failed because the probe regex still required a literal `v` prefix
-  - commit `4ed1680` changed the probe regex to accept either `v2.x` or `2.x`, and the immediately following run `23039582037` went green
+- Verified at the exact requested repo root `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager` (realpath resolves to `/mnt/c/CORE/daily-ops-packager`).
+- Re-verified GitHub Actions run `23039582037` from this repo root in the same pass that refreshed the stale operator-facing status docs:
+  - `gh run list --workflow windows-regression.yml --limit 5` shows latest run `23039582037` succeeded on `master`.
+  - `gh api repos/barneyson55/daily-ops-packager/actions/runs/23039582037` confirms `conclusion: success` for commit `4ed16802a533c52f1d46870eba6b597a370cf782`.
+  - `gh run download 23039582037 --dir tmp/windows-regression-success` re-downloaded the retained artifact bundle.
+  - `gh api repos/barneyson55/daily-ops-packager/actions/runs/23039582037/artifacts` returns `total_count: 1` for `windows-regression-23039582037-1`.
+  - The downloaded bundle contains `regression.log`, `regression-summary.md`, and `workflow-context.txt`.
+  - `regression.log` contains `Resolved AutoHotkey v2 executable:` and `Regression suite OK.` and omits the old AutoHotkey v1 mismatch strings.
+- `STATUS.md`, `docs/status.md`, and `docs/critical_todo.md` were refreshed in the same pass and no longer claim `only failures` / `0 artifacts`.
 - `docs/headless_default_release_gate.md` still shows `Status: **PENDING_REAL_RUN**`, so the native Windows PASS artifact remains the checked-in release blocker.
 
 ## Queueing rules for this file
@@ -27,52 +23,35 @@ Last reprioritized: 2026-03-13 07:14 UTC.
 - Keep only 3-7 concrete open items.
 - Order by **highest engineering impact that is still actionable**.
 - Do **not** leave a native-Windows-only or human-observation-only task in slot 1 while an agent-actionable repo task is still open.
-- Keep blocked external work visible, but place it behind any still-open repo task that Autopilot can execute from this environment.
+- Prefer items that either remove stale operator risk or unlock the next evidence step.
 - Every item must end with a clear verification block that can pass or fail.
+
+## Recently completed
+
+- [x] **P1 — Re-verify run `23039582037` and immediately refresh the stale status surfaces in the same pass**
+  - Completed at `2026-03-13 08:26 UTC`.
+  - Result: the post-fix green run was rechecked live, the expected artifact bundle was re-downloaded and inspected, and `STATUS.md`, `docs/status.md`, and `docs/critical_todo.md` were updated together to match that evidence while keeping the native Windows PASS gate open.
 
 ## Prioritized open items
 
-- [ ] **P1 — Re-verify the fresh green `windows-regression.yml` artifact bundle from run `23039582037`**
-  - **Why this is first:** current `master` already has the post-fix green run, so the next highest-value proof is downloading that exact success artifact bundle and confirming the expected files/runtime evidence are really there.
+- [ ] **P2 — Reduce status-doc drift so `docs/status.md` stays canonical and the other surfaces stop carrying independent histories**
+  - **Why this is first now:** the stale status story has been corrected, so the next highest-leverage step is preventing the same drift from reappearing.
   - **Deliverables:**
-    - Use successful run `23039582037` as the post-fix reference run on current `master`.
-    - Confirm the success-path artifact bundle still contains `regression.log`, `regression-summary.md`, and `workflow-context.txt`.
-    - Confirm `regression.log` still includes `Resolved AutoHotkey v2 executable:` and `Regression suite OK.` while keeping the v1-mismatch text absent.
+    - Keep `docs/status.md` as the detailed release/evidence narrative.
+    - Trim repo-root `STATUS.md` to a short operator summary that points back to `docs/status.md`.
+    - Keep `docs/critical_todo.md` limited to true blockers only, without replaying the full CI history there.
+    - Update `docs/deep_research_auto.md` if needed so it no longer contradicts the refreshed queue/state.
   - **Verification:**
-    - `gh run list --workflow windows-regression.yml --limit 5`
-    - `gh run download 23039582037 --dir tmp/windows-regression-success`
-    - `python3 - <<'PY'
-from pathlib import Path
-base = Path('tmp/windows-regression-success')
-log = next(base.glob('**/regression.log'))
-summary = next(base.glob('**/regression-summary.md'))
-ctx = next(base.glob('**/workflow-context.txt'))
-assert log.is_file() and summary.is_file() and ctx.is_file()
-raw = log.read_bytes()
-text = raw.decode('utf-16le', errors='ignore') if b'\x00' in raw else raw.decode('utf-8', errors='ignore')
-assert 'Resolved AutoHotkey v2 executable:' in text
-assert 'Regression suite OK.' in text
-assert 'This script requires AutoHotkey v2.0.' not in text
-assert 'Current interpreter: AutoHotkey v1' not in text
-PY`
+    - `rg -n "only failures|0 artifacts|23031883329|23037310780|23039582037|PENDING_REAL_RUN" STATUS.md docs/status.md docs/critical_todo.md docs/deep_research_auto.md docs/ai_todo.md`
+    - Manual review confirms:
+      - `docs/status.md` is the detailed canonical narrative
+      - `STATUS.md` is short and points to the canonical doc
+      - `docs/critical_todo.md` lists blockers without carrying a second full status essay
+      - `docs/deep_research_auto.md`, if updated, no longer contradicts the active queue
   - **Current blocker:** none.
 
-- [ ] **P2 — Refresh `STATUS.md`, `docs/status.md`, and `docs/critical_todo.md` once the post-fix artifact re-check lands so operator docs match reality again**
-  - **Why this is second:** the operator-facing status surfaces are stale right now. After the fresh success artifact bundle is re-verified, refreshing them has high near-term value because it restores truthful release communication across the repo and stays actionable from the repo side.
-  - **Deliverables:**
-    - Remove the outdated `only failures` / `0 artifacts` framing.
-    - Record that truthful skipped-run artifacts are already proven by failed runs `23031883329` and `23037310780`.
-    - Record the AutoHotkey install-step probe break and then replace it with the post-fix, post-green-run state backed by run `23039582037` once the artifact re-check is complete.
-    - Preserve the distinction between CI regression confidence and the still-open native Windows PASS gate until P4 closes.
-  - **Verification:**
-    - `grep -n "only failure\|only failures\|0 artifacts\|zero stored Actions artifacts\|total_count.:0" STATUS.md docs/status.md docs/critical_todo.md`
-    - `grep -n "23039582037\|23037310780\|23031883329\|pre-regression-failure.txt\|Install AutoHotkey v2\|Script file not found" STATUS.md docs/status.md docs/critical_todo.md`
-    - Manual diff review confirms the docs no longer claim the obsolete `all failures / zero artifacts` state.
-    - Manual diff review confirms native Windows PASS evidence remains the checked-in release blocker until P4 closes.
-  - **Current blocker:** best done after the `23039582037` artifact bundle is re-verified so the docs can point to a fully checked post-fix success state.
-
 - [ ] **P3 — Collapse the duplicate static-guard surface so `CheckHeadlessDefault.ps1` is the only canonical entrypoint**
-  - **Why this is third:** this is still repo-actionable from the current environment, and it should stay ahead of the native-Windows-only gate so Autopilot does not stall on a human-observation task while repo cleanup remains open.
+  - **Why this is second now:** this is still repo-actionable from the current environment, and the extra script name keeps reappearing in docs/research surfaces even though the real call sites already converge on `CheckHeadlessDefault.ps1`.
   - **Deliverables:**
     - Remove or clearly deprecate `scripts\VerifyNonInteractiveDefault.ps1`.
     - Update any remaining docs/tests/callers so there is exactly one canonical static headless guard name.
@@ -87,7 +66,7 @@ PY`
   - **Current blocker:** none.
 
 - [ ] **P4 — Capture and commit PASS-grade native Windows headless-default evidence, including scheduler audit when `OneClickBackupDaily` exists**
-  - **Why this is fourth:** this remains the checked-in release blocker, but it is intentionally kept behind still-open repo-actionable work so the queue stays continuously executable from this WSL/OpenClaw session. Pull it forward manually as soon as a native Windows operator is available.
+  - **Why this is third now:** this remains the checked-in release blocker, but it stays behind still-open repo-actionable work so Autopilot does not dead-end on a human-observation task while repo-side cleanup is still available.
   - **Deliverables:**
     - Run `scripts\RunHeadlessEvidenceCapture.ps1` from a native Windows terminal.
     - If `OneClickBackupDaily` exists, rerun with `-ScheduledTaskName "OneClickBackupDaily"` so scheduler-query output and action-audit evidence land in the same artifact.
@@ -102,6 +81,5 @@ PY`
 
 ## Notes
 
-- The queue stays intentionally short: one post-fix artifact re-check, two remaining repo-actionable follow-ups, then the still-open native Windows release gate.
-- The main ordering change in this pass is deliberate: **the remaining repo-actionable work stays ahead of the native-Windows PASS gate** so Autopilot does not dead-end on a human-only task while repo-side work is still open.
-- No source-code changes were made in this maintenance pass; this file was refreshed from repo status plus live GitHub evidence only.
+- The queue stays intentionally short: one anti-drift docs cleanup, one remaining repo-actionable script-surface cleanup, then the still-open native Windows release gate.
+- The main completed step in this pass was deliberate: **status-surface repair was fused into the live artifact re-check** so the checked-in repo narrative now matches the current CI evidence.
