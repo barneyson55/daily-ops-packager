@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-03-13 08:26 UTC
+Last updated: 2026-03-13 10:01 UTC
 
 This is the canonical repo status summary. It explains what the automated Windows regression proves, what still requires manual native-Windows evidence, and which follow-up items remain.
 
@@ -85,5 +85,4 @@ If someone asks "are we release-ready?", the accurate answer is:
 ## Next work in order
 
 1. **Docs anti-drift cleanup:** keep `docs/status.md` canonical and trim the other status surfaces so they stop carrying independent histories.
-2. **Static-guard naming cleanup:** collapse the duplicate guard surface so `scripts\CheckHeadlessDefault.ps1` is the only canonical entrypoint.
-3. **Manual/native Windows:** close `docs\headless_default_release_gate.md` with PASS evidence.
+2. **Manual/native Windows:** close `docs\headless_default_release_gate.md` with PASS evidence.

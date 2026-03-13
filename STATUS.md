@@ -1,6 +1,6 @@
 # STATUS
 
-Last triage: 2026-03-13 08:26 UTC
+Last triage: 2026-03-13 10:01 UTC
 
 ## Canonical status surfaces
 - `docs/status.md` — current release story and evidence boundaries
@@ -17,5 +17,4 @@ Last triage: 2026-03-13 08:26 UTC
 
 ## Next work in order
 1. Reduce status-doc drift so `docs/status.md` stays canonical and the other status surfaces stop carrying independent histories.
-2. Collapse the duplicate static-guard surface so `scripts\CheckHeadlessDefault.ps1` is the only canonical entrypoint.
-3. Close the native Windows PASS evidence gate in `docs/headless_default_release_gate.md`.
+2. Close the native Windows PASS evidence gate in `docs/headless_default_release_gate.md`.

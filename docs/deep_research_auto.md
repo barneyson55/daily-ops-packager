@@ -1,216 +1,90 @@
 # Deep Research — daily-ops-packager
 
-Updated: 2026-03-13 04:23 UTC
-Scope of this pass: docs-only maintenance at the exact requested repo root `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager` (realpath resolves to `/mnt/c/CORE/daily-ops-packager`). No source-code changes.
+Updated: 2026-03-13 09:54 UTC
+Scope of this pass: docs-only maintenance at the exact requested repo root `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager`. No source-code changes.
 
 ## Sources reviewed
 
 ### Local repo evidence
 - `git status --short --branch`
-- `README.md`
 - `STATUS.md`
-- `TODO_SHORT_TERM.md`
-- `TODO_LONG_TERM.md`
 - `docs/status.md`
 - `docs/critical_todo.md`
 - `docs/ai_todo.md` (pre-refresh)
 - `docs/deep_research_auto.md` (pre-refresh)
-- `docs/ARCHITECTURE.md`
-- `docs/research_handoff.md`
 - `docs/headless_default_release_gate.md`
-- `.github/workflows/windows-regression.yml`
-- `scripts/Regression.ps1`
 - `scripts/CheckHeadlessDefault.ps1`
 - `scripts/VerifyNonInteractiveDefault.ps1`
+- `scripts/Regression.ps1`
 - `scripts/RunHeadlessEvidenceCapture.ps1`
-- `scripts/CaptureHeadlessEvidence.ps1`
-- `rg -n "VerifyNonInteractiveDefault|CheckHeadlessDefault|headless default guard|Headless default guard" -S .`
-- `git diff d7e987f 7739502 -- .github/workflows/windows-regression.yml`
-
-### Live GitHub evidence
-- `gh run list --repo barneyson55/daily-ops-packager --workflow windows-regression.yml --limit 10`
-- `gh api repos/barneyson55/daily-ops-packager/actions/artifacts`
-- `gh run download 23031883329 --repo barneyson55/daily-ops-packager --dir tmp/docs_maint_20260313/latest-failure`
-- `gh run download 23018180172 --repo barneyson55/daily-ops-packager --dir tmp/docs_maint_20260313/latest-success`
-- `gh api repos/barneyson55/daily-ops-packager/actions/runs/23031883329/jobs`
-- `gh api repos/barneyson55/daily-ops-packager/actions/jobs/66891748015/logs`
-- `gh api repos/barneyson55/daily-ops-packager/actions/runs/23018180172/jobs`
-
-### Minimal external validation
-- Brave search: `AutoHotkey v2 command line ErrorStdOut CP65001 script file not found no script official docs`
-- Brave search: `site:autohotkey.com AutoHotkey v2 command line options ErrorStdOut official`
-- External validation result should be treated as **supporting context only** here because direct fetch of the official AutoHotkey docs page was blocked by a site challenge.
+- `scripts/AssertHeadlessReleaseGate.ps1`
+- `rg -n "VerifyNonInteractiveDefault|CheckHeadlessDefault" -S .`
+- `rg -n "PENDING_REAL_RUN|OneClickBackupDaily|RunHeadlessEvidenceCapture|AssertHeadlessReleaseGate" docs scripts .github -S`
 
 ## Findings from this pass
 
 ### 1) The exact requested repo root exists and started clean
 Evidence:
-- The requested root `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager` exists and resolves to `/mnt/c/CORE/daily-ops-packager`.
+- The requested root `/home/node/.openclaw/workspace/projects/auto-senior-pm/repos/daily-ops-packager` exists.
 - `docs/status.md`, `docs/critical_todo.md`, `docs/ai_todo.md`, and `docs/deep_research_auto.md` all exist there.
 - `git status --short --branch` returned `## master...origin/master` before this docs refresh.
 
 Consequence:
 - No path-discovery work was needed.
-- This pass could stay narrowly scoped to docs curation plus evidence review.
+- This pass could stay narrowly scoped to docs curation plus repo evidence review.
 
-### 2) The architecture is small and the release surface is concentrated
+### 2) The current canonical status story is no longer the older failure-led one
 Evidence:
-- `README.md` and `docs/ARCHITECTURE.md` describe one AHK entrypoint (`src/OneClickBackup.ahk`) that drives the backup pipeline.
-- The supporting verification/evidence layer is mostly PowerShell scripts:
-  - `scripts/Regression.ps1`
-  - `scripts/SmokeTest.ps1`
-  - `scripts/CheckPrereqs.ps1`
-  - `scripts/CheckHeadlessDefault.ps1`
-  - `scripts/RunHeadlessEvidenceCapture.ps1`
-  - `scripts/CaptureHeadlessEvidence.ps1`
-- Release confidence depends on two evidence planes:
-  1. GitHub Actions regression evidence on `windows-latest`
-  2. a checked-in native Windows PASS artifact in `docs/headless_default_release_gate.md`
+- `docs/status.md` is the canonical repo status summary.
+- Its current story says the latest sampled Windows regression run `23039582037` succeeded on `master` and exposed a downloadable artifact bundle.
+- That bundle is documented as containing `regression.log`, `regression-summary.md`, and `workflow-context.txt`.
+- `docs/critical_todo.md` agrees that live CI regression evidence exists, but is not the final release gate.
 
 Consequence:
-- The highest-impact roadmap items are tightly concentrated in one workflow file plus a small set of scripts.
-- Small mistakes in the workflow or evidence scripts can completely change the operator story.
+- Research/status docs should not keep leading with the earlier "workflow currently broken before regression starts" story.
+- The next queue should be driven by what is still open now, not by the stale failure snapshot from the earlier research pass.
 
-### 3) The earlier “truthful skipped-run artifact” gap is now closed and freshly proven
-Evidence:
-- Latest failure run `23031883329` artifact contains:
-  - `pre-regression-failure.txt`
-  - `regression-summary.md`
-  - `workflow-context.txt`
-- That summary says:
-  - `Outcome: skipped`
-  - `Job status: failure`
-  - `Regression log present: False`
-  - the run failed before `scripts\Regression.ps1` produced `regression.log`
-- `git diff d7e987f 7739502 -- .github/workflows/windows-regression.yml` shows the workflow now has conditional summary logic and emits the pre-regression marker when no `regression.log` exists.
-
-Consequence:
-- The prior top TODO about making failed artifacts truthful is stale.
-- The queue should stop leading with that item and move to the next real bottleneck.
-
-### 4) The new top CI problem is a false failure in step 3: `Install AutoHotkey v2`
-Evidence:
-- `gh api repos/barneyson55/daily-ops-packager/actions/runs/23031883329/jobs` shows:
-  - `Install AutoHotkey v2` = `failure`
-  - `Prepare regression artifact directory` = `skipped`
-  - `Run regression suite` = `skipped`
-- The failed job log (`66891748015`) shows:
-  - Chocolatey installs `autohotkey.install v2.0.21`
-  - the workflow resolves `C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe`
-  - then runs the probe `AutoHotkey64.exe /ErrorStdOut /CP65001`
-  - the probe fails with `AutoHotkey64.ahk (0) : ==> Script file not found.`
-- The local workflow file contains that new probe block.
-
-Consequence:
-- Current `master` is not blocked by artifact truthfulness anymore; it is blocked by a newly introduced runtime-validation method.
-- The next engineering step should be to replace or redesign the probe so it does not require an implicit script file.
-
-### 5) The happy path still exists; the workflow is not generically broken
-Evidence:
-- Recent success run `23018180172` artifact contains:
-  - `regression.log`
-  - `regression-summary.md`
-  - `workflow-context.txt`
-- Its decoded `regression.log` contains:
-  - `Resolved AutoHotkey v2 executable:`
-  - `Regression suite OK.`
-- The same log does **not** contain:
-  - `This script requires AutoHotkey v2.0.`
-  - `Current interpreter: AutoHotkey v1`
-- `gh api repos/barneyson55/daily-ops-packager/actions/artifacts` currently returns `total_count: 12`.
-
-Consequence:
-- The repo is in a **split state**, not a simple “CI dead” state:
-  - truthful failure artifacts now work,
-  - prior green artifacts still exist,
-  - but the newest `master` revision re-broke the install/probe step.
-
-### 6) The latest workflow edit bundled one good change and one breaking change together
-Evidence:
-- `git diff d7e987f 7739502 -- .github/workflows/windows-regression.yml` shows two substantive changes landed in the same window:
-  1. good: truthful skipped-run artifact logic + pre-regression marker output
-  2. risky/breaking: bare-executable AutoHotkey probe before regression begins
-
-Consequence:
-- The queue should not ask for a rollback of the whole change set.
-- It should specifically preserve the new truthful artifact behavior while fixing only the probe contract.
-
-### 7) Minimal external validation supports the conclusion that the current probe contract is brittle
-Evidence:
-- Brave search results for the official AutoHotkey v2 `#ErrorStdOut` docs describe `/ErrorStdOut` in the context of launching a script and redirecting syntax errors to stderr.
-- Search results from AutoHotkey community threads also align with the idea that invoking the interpreter without a real script can lead to `Script file not found` behavior.
-- Direct page fetch of the official docs was blocked by a challenge page, so this validation is weaker than a full doc citation.
-
-Consequence:
-- The repo evidence and the minimal external evidence point in the same direction: probing the interpreter by launching it bare is not a dependable runtime/version check.
-- A more deterministic approach is warranted: either rely on file-version/path checks, or invoke a known helper script explicitly.
-
-### 8) The native Windows PASS gate is still open
+### 3) The checked-in release blocker is still the native Windows PASS artifact
 Evidence:
 - `docs/headless_default_release_gate.md` still shows `Status: **PENDING_REAL_RUN**`.
-- `scripts/RunHeadlessEvidenceCapture.ps1` and `scripts/CaptureHeadlessEvidence.ps1` provide the operator flow, but they still require a native Windows terminal and direct human observation for PASS mode.
+- `docs/status.md` and `docs/critical_todo.md` both say native Windows PASS evidence is still required.
+- The wrapper/assert tooling already exists:
+  - `scripts/RunHeadlessEvidenceCapture.ps1`
+  - `scripts/AssertHeadlessReleaseGate.ps1`
 
 Consequence:
-- The checked-in release blocker is unchanged.
-- It should stay visible in the queue, but not above agent-actionable CI repair work.
+- Release confidence is still incomplete until a real Windows desktop run updates the checked-in gate artifact to `PASS`.
+- This item stays on the queue, but it should remain below still-open repo-actionable work because it cannot be completed from this WSL/OpenClaw session.
 
-### 9) There is still a small cleanup opportunity around duplicate static-guard entrypoints
+### 4) The duplicate static-guard surface is still the main repo-actionable engineering cleanup
 Evidence:
-- `scripts/VerifyNonInteractiveDefault.ps1` is only:
-  - a parameter block
-  - a direct call into `scripts/CheckHeadlessDefault.ps1`
-- `rg` shows all meaningful repo references already point to `CheckHeadlessDefault.ps1`.
-- `docs/research_handoff.md` explicitly frames the open research question as collapsing the duplicate static guard surface so one script is truly canonical.
+- `scripts/VerifyNonInteractiveDefault.ps1` still exists.
+- It is a thin wrapper over `scripts/CheckHeadlessDefault.ps1`.
+- Meaningful call sites and canonical docs already mostly converge on `scripts/CheckHeadlessDefault.ps1`.
+- The duplicate name still appears in research/queue surfaces and keeps the guard story noisier than it needs to be.
 
 Consequence:
-- This is not the lead blocker, but it is a credible medium-priority cleanup item.
-- Finishing it would reduce naming drift and simplify future docs/evidence maintenance.
+- The highest-impact repo-actionable follow-up is to collapse this duplicate surface so one guard name is canonical everywhere.
+- Doing that first reduces future doc drift and simplifies regression/evidence maintenance.
 
-### 10) Multi-surface status docs are stale again
+### 5) The main docs risk right now is drift, not missing files
 Evidence:
-- `STATUS.md`, `docs/status.md`, and `docs/critical_todo.md` still describe the older `only failures` / `0 artifacts` state.
-- They do not mention:
-  - latest failure `23031883329`
-  - `pre-regression-failure.txt`
-  - `Job status: failure`
-  - `Regression log present: False`
-  - the current install-step `Script file not found` break
+- The expected docs files exist.
+- `docs/status.md`, `docs/critical_todo.md`, and `docs/ai_todo.md` are aligned around the same release story.
+- This research file itself was the main stale surface and needed refresh so it stopped acting like a competing status feed.
 
 Consequence:
-- Status docs should be refreshed, but the best timing is after the install-step probe is fixed and one fresh green run exists.
-- Otherwise the docs will need to be rewritten again immediately.
-
-## Assumptions
-
-- The GitHub API job metadata and downloaded logs/artifacts accurately reflect current workflow behavior.
-- The current failure mode is caused by the newly added bare-executable probe, not by a transient Chocolatey outage, because the failure occurs **after** installation and resolution of the v2 executable path.
-- The successful run `23018180172` is recent enough to confirm that the regression suite itself can still pass once the install step succeeds.
-- Minimal external validation around `/ErrorStdOut` is directionally useful but not authoritative enough on its own to dictate implementation details.
-
-## Unknowns
-
-- Whether AutoHotkey v2 exposes a stable no-script version/help mode that would make a direct executable probe safe.
-- Whether the best permanent fix is:
-  - version metadata/path checks only,
-  - an explicit helper `.ahk` script probe,
-  - or another interpreter contract.
-- Whether the current install-step break is perfectly deterministic across all `windows-latest` runners or only common enough to explain the latest failures.
-- Whether `OneClickBackupDaily` exists on the native Windows machine that will eventually produce PASS-grade evidence.
+- Future updates should treat `docs/status.md` as the canonical narrative, `docs/critical_todo.md` as blocker-only, and `docs/ai_todo.md` as the short execution queue.
+- `docs/deep_research_auto.md` should stay as supporting analysis, not as an independent status page with its own stale timeline.
 
 ## Resulting prioritization
 
-1. Fix the AutoHotkey install-step probe in `.github/workflows/windows-regression.yml` so the workflow stops failing before regression starts.
-2. Re-establish one fresh green `windows-regression.yml` run and re-verify the full artifact bundle and runtime evidence.
-3. Refresh `STATUS.md`, `docs/status.md`, and `docs/critical_todo.md` after the post-fix run so operator docs stop lagging the real CI state.
-4. Collapse the duplicate static-guard surface so `CheckHeadlessDefault.ps1` is the only canonical entrypoint.
-5. Capture native Windows PASS evidence in `docs/headless_default_release_gate.md`, including scheduler audit when applicable.
+1. Collapse the duplicate static-guard surface so `scripts/CheckHeadlessDefault.ps1` is the only canonical entrypoint.
+2. Keep the status surfaces aligned so `docs/status.md` stays canonical and the supporting docs do not drift again.
+3. Capture native Windows PASS evidence in `docs/headless_default_release_gate.md`, including scheduler audit when applicable.
 
 ## Notes
 
-- This pass intentionally updated only `docs/ai_todo.md` and this research file.
-- The key backlog change is substantive, not cosmetic:
-  - **old lead gap:** failure artifacts overstated what was proven
-  - **new lead gap:** that problem is fixed, but the new runtime probe now breaks the workflow earlier
-- For the Autopilot queue specifically, all still-open repo-actionable work should stay above the native-Windows-only PASS gate so execution does not dead-end on a human-observation task.
-- The repo’s architecture keeps the roadmap fairly crisp: one workflow, one AHK app, a small PowerShell validation/evidence harness, and one still-open native Windows release gate.
-- No source-code changes were made in this maintenance pass.
+- This pass intentionally updated only `docs/ai_todo.md` and `docs/deep_research_auto.md`.
+- No source-code changes were made.
+- No secrets, payment flows, or personal account actions were involved.
