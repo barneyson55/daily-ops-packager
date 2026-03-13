@@ -112,7 +112,23 @@ jobs:
             throw 'AutoHotkey v2 executable not found after Chocolatey install.'
           }
 
-          $probeOutput = & $ahkPath '/ErrorStdOut' '/CP65001' 2>&1 | Out-String
+          $probeScriptPath = Join-Path $env:RUNNER_TEMP 'probe-ahk-version.ahk'
+          @'
+#Requires AutoHotkey v2.0
+FileAppend(A_AhkVersion . "`n", "*")
+'@ | Out-File -FilePath $probeScriptPath -Encoding utf8
+
+          $previousErrorActionPreference = $ErrorActionPreference
+          try {
+            $ErrorActionPreference = 'Continue'
+            $probeOutput = & $ahkPath '/ErrorStdOut' '/CP65001' $probeScriptPath 2>&1 | Out-String
+            $probeExitCode = $LASTEXITCODE
+          }
+          finally {
+            $ErrorActionPreference = $previousErrorActionPreference
+            Remove-Item -LiteralPath $probeScriptPath -ErrorAction SilentlyContinue
+          }
+
           if ($probeOutput -match '(?im)This script requires AutoHotkey v2\.0\.' -or
               $probeOutput -match '(?im)Current interpreter:\s*AutoHotkey v1(?:\.|\b)' -or
               $probeOutput -match '(?im)\bAutoHotkey v1(?:\.|\b)') {
@@ -120,9 +136,20 @@ jobs:
             throw "Resolved AutoHotkey executable probe reported the wrong runtime: $ahkPath"
           }
 
+          if ($probeExitCode -ne 0) {
+            if (-not [string]::IsNullOrWhiteSpace($probeOutput)) {
+              Write-Host $probeOutput.Trim()
+            }
+
+            throw "Resolved AutoHotkey executable probe failed: $ahkPath"
+          }
+
           $probeVersionMatch = [regex]::Match($probeOutput, '(?im)^\s*(?:AutoHotkey\s+)?v(?<major>\d+)\.')
-          if ($probeVersionMatch.Success -and $probeVersionMatch.Groups['major'].Value -ne '2') {
-            Write-Host $probeOutput.Trim()
+          if (-not $probeVersionMatch.Success -or $probeVersionMatch.Groups['major'].Value -ne '2') {
+            if (-not [string]::IsNullOrWhiteSpace($probeOutput)) {
+              Write-Host $probeOutput.Trim()
+            }
+
             throw "Resolved AutoHotkey executable probe did not report v2: $ahkPath"
           }
 
