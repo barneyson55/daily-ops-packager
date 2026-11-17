@@ -23,9 +23,7 @@ This is the canonical repo status summary. It explains what the automated Window
 
 ## Evidence surfaces
 
-- `STATUS.md` — short repo-root summary for quick triage
 - `docs/status.md` — this canonical status explanation
-- `docs/critical_todo.md` — only the current real blockers
 - `docs/headless_default_release_gate.md` — durable native-Windows headless gate artifact
 - `.github/workflows/windows-regression.yml` — automated Windows regression entrypoint and artifact publisher
 - `scripts\Regression.ps1` — regression suite executed by GitHub Actions
@@ -72,7 +70,6 @@ So downloadable workflow artifacts are no longer a stale or hypothetical claim h
 
 Canonical docs now default to the safe no-argument smoke path and keep `-Config config\app.ini` as explicit opt-in for live/local testing.
 
-The remaining dated planning-doc hit in `docs/aspm_sellable_delivery_scope_2026-02-16_wave2.md` has been replaced with the safe default smoke command, so the old live-config smoke form is no longer presented there as copy-pasteable guidance.
 
 ## What to tell a reviewer today
 
